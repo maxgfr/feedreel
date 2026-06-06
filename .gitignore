@@ -19,11 +19,13 @@ remotion-bundle/
 # Vendored fonts (downloaded at setup) — keep the dir, ignore the binaries
 src/remotion/fonts/*.woff2
 public/fonts/*.woff2
-# Pistes musicales CC0 + modèles de voix (téléchargés au setup, lourds)
+# CC0 music tracks + voice models (downloaded at setup, large)
 assets/music/*.mp3
 assets/music/*.wav
 assets/music/*.m4a
 assets/music/*.ogg
+# Default shipped track (committed; other tracks are downloaded at setup)
+!assets/music/morning-sky-by-roa-music.mp3
 voices/*.onnx
 voices/*.onnx.json
 src/remotion/fonts/*.ttf

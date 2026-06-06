@@ -21,7 +21,7 @@ audio:
   music:
     # Fixed track used for ALL videos (path relative to the root or absolute).
     # If empty/absent, the pipeline picks a track from `dir`.
-    track: morning-sky-by-roa-music.mp3
+    track: assets/music/morning-sky-by-roa-music.mp3
     dir: assets/music   # only picks here if `track` is not set
     fadeSec: 1.5        # fade in/out (s)
     volume: 1.0         # music volume (0–1; 1 = original volume)
