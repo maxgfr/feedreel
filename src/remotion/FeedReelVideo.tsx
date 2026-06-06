@@ -4,11 +4,11 @@
  * Receives a `VideoScript` as props (see src/types.ts) and assembles it:
  *   - procedural background (Background)
  *   - persistent header (Header) + progress bar (ProgressBar)
- *   - a `Series` of scenes: intro, then 1 scene per `item`-type segment,
- *     each sub-sequence lasting `seg.durationFrames` (aligned with the TTS audio).
+ *   - a `Series` of scenes: intro, then 1 scene per `item` segment, then the
+ *     auto-appended `outro` (subscribe) scene — each lasting `seg.durationFrames`.
  *
  * The total composition duration is derived by `calculateFeedReelMetadata`
- * (sum of `durationFrames`), so the video lasts exactly as long as the voice-over.
+ * (sum of `durationFrames`).
  */
 import { AbsoluteFill, Series } from 'remotion';
 import type { CalculateMetadataFunction } from 'remotion';
@@ -17,8 +17,7 @@ import type { RenderedSegment, VideoScript } from '../types';
 /**
  * Literal variant of `VideoScript`: an object type (not an interface)
  * satisfies the `Props extends Record<string, unknown>` constraint required by
- * `Composition` / `CalculateMetadataFunction`, without modifying `src/types.ts`.
- * Structurally identical to `VideoScript`.
+ * `Composition` / `CalculateMetadataFunction`. Structurally identical.
  */
 export type FeedReelProps = { [K in keyof VideoScript]: VideoScript[K] };
 import { deriveTheme } from './theme';
@@ -28,6 +27,7 @@ import { Header } from './components/Header';
 import { ProgressBar } from './components/ProgressBar';
 import { IntroScene } from './scenes/IntroScene';
 import { ItemScene } from './scenes/ItemScene';
+import { OutroScene } from './scenes/OutroScene';
 
 /** Minimum segment duration, in frames (safety net against 0/NaN). */
 const MIN_SEGMENT_FRAMES = 1;
@@ -47,7 +47,7 @@ function safeFrames(seg: RenderedSegment): number {
 /**
  * Computes the composition metadata from the props.
  * - `durationInFrames` = sum of the segments' `durationFrames` (at least 1).
- * - `fps` / `width` / `height` come from the props (the category's format).
+ * - `fps` / `width` / `height` come from the props (the configured format).
  */
 export const calculateFeedReelMetadata: CalculateMetadataFunction<FeedReelProps> = ({
   props,
@@ -65,7 +65,8 @@ export const calculateFeedReelMetadata: CalculateMetadataFunction<FeedReelProps>
 
 /** Main Remotion composition. */
 export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
-  const { title, date, emoji, label, accentColor, segments, uiLabel, dateLocale } = props;
+  const { title, date, emoji, label, accentColor, segments, uiLabel, dateLocale, subscribeText } =
+    props;
 
   // Load the OFL fonts (idempotent, fails silently).
   loadFonts();
@@ -96,7 +97,7 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
         <Series>
           {isEmpty ? (
             <Series.Sequence durationInFrames={MIN_SEGMENT_FRAMES}>
-              <IntroScene title={title} label={label} uiLabel={uiLabel} theme={theme} />
+              <IntroScene title={title} itemCount={items.length} theme={theme} />
             </Series.Sequence>
           ) : (
             list.map((seg, i) => {
@@ -108,9 +109,21 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
                   <Series.Sequence key={key} durationInFrames={durationInFrames}>
                     <IntroScene
                       title={title}
-                      hook={seg.narration}
-                      label={label}
+                      hook={seg.hook}
+                      itemCount={items.length}
+                      theme={theme}
+                    />
+                  </Series.Sequence>
+                );
+              }
+
+              if (seg.type === 'outro') {
+                return (
+                  <Series.Sequence key={key} durationInFrames={durationInFrames}>
+                    <OutroScene
+                      subscribeText={subscribeText}
                       uiLabel={uiLabel}
+                      emoji={emoji}
                       theme={theme}
                     />
                   </Series.Sequence>
@@ -144,54 +157,50 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
 }
 
 /**
- * Default props: a sample `VideoScript` in English (intro + 2 items),
- * used by the Remotion studio and the preview render.
+ * Default props: a sample `VideoScript` (intro + 2 items + outro), used by the
+ * Remotion studio and the preview render.
  */
 export const defaultFeedReelProps: FeedReelProps = {
-  category: 'global',
-  date: '2026-06-05',
-  title: "Today's tech watch",
+  date: '2026-06-06',
+  title: "Today's football wrap",
   segments: [
     {
       type: 'intro',
-      narration:
-        'The tech digest of the day, in under a minute. Three things to remember, no noise.',
-      audioPath: '',
+      hook: 'The football stories everyone is talking about today — in under a minute.',
+      durationSec: 3,
+      durationFrames: 90,
+    },
+    {
+      type: 'item',
+      headline: 'Late winner sends them top of the table',
+      body: 'A stoppage-time strike flips the title race with three games to go.',
+      url: 'https://example.com/football-winner',
+      source: 'example.com',
       durationSec: 4,
       durationFrames: 120,
     },
     {
       type: 'item',
-      headline: 'A new model paves the way for autonomous code',
-      body: 'Agents able to chain several development steps without continuous supervision.',
-      narration:
-        'First topic: a new model pushes the autonomy of code agents even further.',
-      url: 'https://example.com/ia-agents',
+      headline: 'Star striker linked with a summer move',
+      body: 'Reports suggest a record fee is being prepared by two European giants.',
+      url: 'https://example.com/football-transfer',
       source: 'example.com',
-      audioPath: '',
-      durationSec: 6,
-      durationFrames: 180,
+      durationSec: 4,
+      durationFrames: 120,
     },
     {
-      type: 'item',
-      headline: 'A critical vulnerability patched urgently',
-      body: 'An update is recommended without delay for servers exposed on the Internet.',
-      narration:
-        'On the security side, a critical vulnerability has just been fixed: apply the patch right away.',
-      url: 'https://example.com/securite-faille',
-      source: 'example.com',
-      audioPath: '',
-      durationSec: 6,
-      durationFrames: 180,
+      type: 'outro',
+      durationSec: 3,
+      durationFrames: 90,
     },
   ],
   audioFile: '',
-  emoji: '🌍',
-  label: 'Global / News Tech',
-  accentColor: '#4ea8ff',
-  langCode: 'en',
-  uiLabel: 'TECH WATCH',
+  emoji: '⚽',
+  label: 'Football',
+  accentColor: '#22c55e',
+  uiLabel: 'FOOTBALL',
   dateLocale: 'en-US',
+  subscribeText: 'Follow for daily football news',
   fps: 30,
   width: 1080,
   height: 1920,

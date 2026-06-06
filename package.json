@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Local-first generator of daily tech-watch short videos (multilingual), with auto-generated captions and opt-in publishing to YouTube Shorts, TikTok and Instagram Reels.",
+  "description": "Local-first generator of one daily vertical short video from RSS feeds (music only), with a copy-paste title/description for manual posting.",
   "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=20"
@@ -14,9 +14,6 @@
       "esbuild"
     ]
   },
-  "bin": {
-    "feedreel": "./bin/feedreel.mjs"
-  },
   "scripts": {
     "feedreel": "tsx src/cli.ts",
     "typecheck": "tsc --noEmit",
@@ -26,16 +23,11 @@
     "setup": "bash scripts/setup.sh"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1063.0",
-    "@aws-sdk/s3-request-presigner": "^3.1063.0",
-    "@googleapis/youtube": "^33.0.0",
     "@remotion/bundler": "^4.0.473",
     "@remotion/cli": "^4.0.473",
     "@remotion/renderer": "^4.0.473",
     "better-sqlite3": "^11.8.1",
     "commander": "^13.1.0",
-    "dotenv": "^17.4.2",
-    "google-auth-library": "^10.7.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "remotion": "^4.0.473",

@@ -1,98 +1,70 @@
 /**
  * Shared data contracts of the feedreel pipeline.
  * This file is the source of truth; all modules import from here.
+ *
+ * The pipeline produces ONE video per run from a single editable config
+ * (config/feedreel.yaml): no categories, no voice — music only.
  */
 
-/** Configuration of a video category (centralized in the editable config). */
-export interface CategoryConfig {
-  /** Stable slug identifier (used as file key and output name). */
-  id: string;
-  /** Label displayed in the video (e.g. "Security"). */
+/** Language identity of the video (drives the labels and the date format). */
+export interface LanguageConfig {
+  /** Language name (for documentation only, e.g. "English"). */
+  name: string;
+  /** Label prefix displayed in the video header (e.g. "FOOTBALL"). */
+  uiLabel: string;
+  /** Intl locale to format the date (e.g. "en-US"). */
+  dateLocale: string;
+}
+
+/** Editorial identity of the video. */
+export interface VideoConfig {
+  /** Label displayed in the header (e.g. "Football"). */
   label: string;
   /** Header emoji. */
   emoji: string;
-  /** Accent color (hex, e.g. "#ff5577"). */
+  /** Accent color (hex, e.g. "#22c55e"). */
   accentColor: string;
   /** Maximum number of items kept for the video. */
   maxItems: number;
-  /** RSS/Atom feeds of the category. Empty if `aggregate`. */
-  feeds: string[];
+  /** Call-to-action shown on the closing "subscribe" scene. */
+  subscribeText: string;
+}
+
+/** Background-music settings (the only soundtrack — no voice-over). */
+export interface MusicConfig {
   /**
-   * If true: aggregated category (e.g. "Global"). Has no feed of its own; built
-   * from the top item of each other category.
+   * Fixed track for every video (path relative to the root or absolute).
+   * If defined and present, it takes precedence over `dir`; otherwise a track
+   * is picked deterministically from `dir`.
    */
-  aggregate?: boolean;
-  /**
-   * Language code of the category (e.g. "fr", "en"). If absent: `defaultLanguage`
-   * from the configuration. Drives the TTS voice, the Claude prompt, the labels and the date.
-   */
-  language?: string;
+  track?: string;
+  /** Tracks directory (used if `track` is not defined). */
+  dir: string;
+  /** Fade-in/fade-out duration (s). */
+  fadeSec: number;
+  /** Music volume (0–1, 1 = original volume). */
+  volume: number;
 }
 
-/**
- * Configuration of a language: drives the writing (Claude), the speech synthesis,
- * the UI labels and the date format. Enables multilingual support.
- */
-export interface LanguageConfig {
-  /** Short BCP-47 code (e.g. "fr", "en"). */
-  code: string;
-  /** Name of the language for the instructions given to Claude (e.g. "français", "English"). */
-  name: string;
-  /** Label prefix displayed in the video header (e.g. "VEILLE", "TECH WATCH"). */
-  uiLabel: string;
-  /** Intl locale to format the date (e.g. "fr-FR", "en-US"). */
-  dateLocale: string;
-  /** TTS settings for this language. */
-  tts: TtsConfig;
-}
-
-/** TTS backend and voice for a language. */
-export interface TtsConfig {
-  /** Engine: "kokoro" (kokoro-mlx), "piper", "xtts"… (extensible). */
-  engine: string;
-  /** Engine-specific voice identifier (e.g. "ff_siwis", "fr_FR-tom-medium"). */
-  voice: string;
-}
-
-/**
- * Audio configuration: drives the soundtrack of the videos.
- *  - `mode: 'music'` (default): no voice-over, royalty-free background music;
- *    the scene durations are fixed (see `scene`).
- *  - `mode: 'voice'`: TTS voice-over (the scene durations follow the synthesized audio).
- */
-export interface AudioConfig {
-  mode: 'music' | 'voice';
-  /** Music mode settings. */
-  music: {
-    /**
-     * Fixed track to use for ALL videos (path relative to the root or absolute).
-     * If defined and present, it takes precedence over `dir`. Otherwise, a track from `dir` is picked.
-     */
-    track?: string;
-    /** Tracks directory (used if `track` is not defined; the pipeline picks one from it). */
-    dir: string;
-    /** Fade-in/fade-out duration (s). */
-    fadeSec: number;
-    /** Music volume (0–1, 1 = original volume). */
-    volume: number;
-  };
-  /** Fixed scene durations in music mode (s). */
-  scene: {
-    introSec: number;
-    itemSec: number;
-  };
+/** Fixed scene durations (s). */
+export interface SceneConfig {
+  introSec: number;
+  itemSec: number;
+  /** Closing "subscribe" scene duration. */
+  outroSec: number;
 }
 
 /**
  * Application configuration loaded from the editable file (config/feedreel.yaml):
- * video format, languages, categories, audio. Single editable source without touching the code.
+ * video format, language, editorial identity, feeds, music, scene durations.
  */
 export interface AppConfig {
   format: { width: number; height: number; fps: number };
-  defaultLanguage: string;
-  languages: Record<string, LanguageConfig>;
-  categories: CategoryConfig[];
-  audio: AudioConfig;
+  language: LanguageConfig;
+  video: VideoConfig;
+  feeds: string[];
+  music: MusicConfig;
+  scene: SceneConfig;
 }
 
 /** Global configuration, resolved from the environment (config/index.ts). */
@@ -105,14 +77,6 @@ export interface GlobalConfig {
   cacheDir: string;
   /** Path of the deduplication SQLite database. */
   dbPath: string;
-  /** Kokoro voice (default ff_siwis). */
-  voice: string;
-  /** Python binary of the TTS venv. */
-  pythonBin: string;
-  /** Claude CLI binary (autonomous mode). */
-  claudeBin: string;
-  /** Path of the Python TTS wrapper. */
-  ttsScript: string;
   /** Frames per second. */
   fps: number;
   /** Video width (px). */
@@ -121,80 +85,96 @@ export interface GlobalConfig {
   height: number;
   /** Timeout per RSS feed (ms). */
   feedTimeoutMs: number;
-  /** Default language code (from the config). */
-  defaultLanguage: string;
-  /** Available languages (from the config). */
-  languages: Record<string, LanguageConfig>;
-  /** Audio configuration (music vs voice), from the config. */
-  audio: AudioConfig;
+  /** Language identity (from the config). */
+  language: LanguageConfig;
+  /** Editorial identity (from the config). */
+  video: VideoConfig;
+  /** RSS/Atom feeds (from the config). */
+  feeds: string[];
+  /** Background-music settings (from the config). */
+  music: MusicConfig;
+  /** Scene durations (from the config). */
+  scene: SceneConfig;
 }
 
-/** Normalized RSS item (FR-1). */
+/** Normalized RSS item. */
 export interface RssItem {
   /** guid or URL — deduplication key. */
   id: string;
-  /** category id. */
-  category: string;
   title: string;
   url: string;
   /** Cleaned summary (HTML removed) and truncated. */
   summary: string;
-  /** Source domain (e.g. "krebsonsecurity.com"). */
+  /** Source domain (e.g. "bbc.co.uk"). */
   source: string;
   /** ISO 8601 publication date. */
   publishedAt: string;
 }
 
-/** Script segment as produced by Claude (before TTS). */
+/** A segment type in the rendered video. */
+export type SegmentType = 'intro' | 'item' | 'outro';
+
+/**
+ * Script segment as written by the skill (before rendering).
+ * `intro` uses `hook`; `item` uses `headline`/`body`/`url`/`source`.
+ * All fields are optional (the scenes render defensively when one is missing).
+ */
 export interface ScriptSegmentInput {
   type: 'intro' | 'item';
-  /** ≤ ~60 characters, displayed (item only, optional for intro). */
+  /** Intro only: 1–2 punchy on-screen sentences. */
+  hook?: string;
+  /** Item only: displayed title (≤ ~60 characters). */
   headline?: string;
-  /** ≤ ~140 characters, displayed. */
+  /** Item only: displayed detail (≤ ~140 characters). */
   body?: string;
-  /** 1–3 natural spoken sentences (always present). */
-  narration: string;
   url?: string;
   source?: string;
 }
 
-/** Video script as produced by Claude (strict JSON output, §11). */
+/**
+ * Video script as written by the skill (strict JSON, validated by zod).
+ * `title` is on-screen; `description` + `hashtags` are for the social caption.
+ */
 export interface VideoScriptInput {
-  category: string;
   date: string;
   title: string;
+  description: string;
+  hashtags: string[];
   segments: ScriptSegmentInput[];
 }
 
-/** Segment enriched by the TTS (audio path + durations). */
-export interface RenderedSegment extends ScriptSegmentInput {
-  audioPath: string;
+/** Segment enriched with its fixed duration (and possibly the synthetic outro). */
+export interface RenderedSegment {
+  type: SegmentType;
+  hook?: string;
+  headline?: string;
+  body?: string;
+  url?: string;
+  source?: string;
   durationSec: number;
   durationFrames: number;
 }
 
 /**
  * Resolved video script: props passed to the Remotion composition.
- * Includes the visual identity of the category and the format.
+ * Includes the visual identity and the format.
  */
 export interface VideoScript {
-  category: string;
   date: string;
   title: string;
   segments: RenderedSegment[];
-  /** Concatenated audio file (1 track for the whole video). */
+  /** Single background-music track for the whole video ('' if none). */
   audioFile: string;
-  // Category identity (copied from CategoryConfig for composition autonomy).
+  // Visual identity (from the config).
   emoji: string;
   label: string;
   accentColor: string;
-  // Language (for the labels and the date format of the composition).
-  /** Language code (e.g. "fr", "en"). */
-  langCode: string;
-  /** Header label prefix (e.g. "VEILLE", "TECH WATCH"). */
+  /** Header label prefix (e.g. "FOOTBALL"). */
   uiLabel: string;
-  /** Intl locale to format the date (e.g. "fr-FR"). */
+  /** Intl locale to format the date (e.g. "en-US"). */
   dateLocale: string;
+  /** Closing "subscribe" call-to-action. */
+  subscribeText: string;
   // Format.
   fps: number;
   width: number;

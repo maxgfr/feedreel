@@ -1,6 +1,6 @@
 /**
  * PERSISTENT header (shown for the entire duration of the video):
- * category emoji + label + date. Placed at the top, safe for the vertical format.
+ * solid accent emoji tile + uppercase label + date chip. Bold sport-social.
  */
 import type { Theme } from '../theme';
 import { FONTS } from '../fonts';
@@ -37,7 +37,7 @@ export function Header({ emoji, label, date, dateLocale, theme }: HeaderProps): 
     <div
       style={{
         position: 'absolute',
-        top: 64,
+        top: 60,
         left: 64,
         right: 64,
         display: 'flex',
@@ -49,16 +49,16 @@ export function Header({ emoji, label, date, dateLocale, theme }: HeaderProps): 
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
         <div
           style={{
-            width: 88,
-            height: 88,
-            borderRadius: 24,
-            background: theme.surface,
-            border: `1px solid ${theme.accentSoft}`,
+            width: 92,
+            height: 92,
+            borderRadius: 22,
+            background: theme.accentGradient,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 48,
+            fontSize: 50,
             lineHeight: 1,
+            boxShadow: `0 12px 36px ${theme.accentGlow}`,
           }}
         >
           {emoji}
@@ -66,9 +66,10 @@ export function Header({ emoji, label, date, dateLocale, theme }: HeaderProps): 
         <span
           style={{
             fontFamily: FONTS.display,
-            fontWeight: 700,
-            fontSize: 40,
-            letterSpacing: '-0.01em',
+            fontWeight: 800,
+            fontSize: 44,
+            letterSpacing: '0.01em',
+            textTransform: 'uppercase',
             color: theme.text,
           }}
         >
@@ -79,9 +80,14 @@ export function Header({ emoji, label, date, dateLocale, theme }: HeaderProps): 
       <span
         style={{
           fontFamily: FONTS.mono,
+          fontWeight: 700,
           fontSize: 28,
-          color: theme.textMuted,
+          color: theme.text,
           whiteSpace: 'nowrap',
+          padding: '10px 18px',
+          borderRadius: 999,
+          background: theme.surface,
+          border: `2px solid ${theme.accentSoft}`,
         }}
       >
         {formatDate(date, dateLocale)}

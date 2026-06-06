@@ -1,21 +1,23 @@
 ---
 name: feedreel
 description: >-
-  Generates the daily tech-watch videos (FR) in file handoff mode: prepares the
-  RSS items, you write the per-category JSON video script yourself, then it
-  renders the MP4s via the local pipeline (Remotion + Kokoro TTS). Use this skill
-  when the user wants to produce/update the tech-watch videos by hand, category
-  by category, without invoking the autonomous mode.
+  Generate the daily short video locally from the project's RSS feeds. Use this
+  whenever the user asks to make/generate/produce the video — e.g. "generate me
+  the video", "génère moi la vidéo", "fais la vidéo du jour", "make today's
+  video" (optionally for a given date). It prepares the items, YOU write the
+  script + title + description + hashtags as JSON, then it renders one vertical
+  MP4 (music only) with an auto "subscribe" outro plus a copy-paste caption to
+  post manually. Everything runs locally; no network beyond fetching the feeds.
 ---
 
-# Skill: feedreel (file handoff mode)
+# Skill: feedreel (daily video)
 
-You drive the `feedreel` pipeline in **file handoff mode**: YOU write the
-video script for each category (Claude writes outside the pipeline), then the local
-pipeline synthesizes the voice and renders the video. No network step is performed by the
-pipeline in this mode (`--mode file` generates nothing on its own: it reads the scripts you wrote).
+You drive the `feedreel` pipeline to produce **one vertical video** from the
+project's RSS feeds. The pipeline is local and deterministic; **you** do the
+editorial work (selecting items and writing the script, title, description and
+hashtags). Music only — there is no voice-over.
 
-All paths are relative to the project root. The date `<date>` uses the `YYYY-MM-DD` format.
+All paths are relative to the project root. `<date>` is `YYYY-MM-DD` (default: today).
 
 ## Procedure
 
@@ -25,44 +27,41 @@ All paths are relative to the project root. The date `<date>` uses the `YYYY-MM-
 pnpm feedreel prepare
 ```
 
-This fetches the feeds, deduplicates and writes, for each category that has items:
+This fetches the feeds, deduplicates against past videos, and writes:
 
 ```
-cache/items/<date>/<cat>.json
+cache/items/<date>.json
 ```
 
-The categories are: `global`, `ia`, `typescript`, `java`, `rust`, `securite`.
-A category with no new item will have no file (it will be skipped).
+Each item has: `title`, `url`, `summary`, `source`, `publishedAt`.
+If the file has `[]` (no new item), tell the user there is nothing fresh to make
+a video from today, and stop.
 
-### 2. Write the video script for each category
+### 2. Write the video script
 
-For **each** category that has a `cache/items/<date>/<cat>.json` file:
+Read `cache/items/<date>.json`, then write `cache/scripts/<date>.json`.
 
-1. Read the items JSON (title, source, url, summary, date).
-2. Write a video script yourself in **French**, factual and concise: filter out noise
-   and duplicates, rank items from most to least important.
-3. Write the result to:
+- Read `config/feedreel.yaml` to know `video.maxItems`, `video.label` and
+  `language` (write everything in that language).
+- Select and **rank** the items by importance/appeal; keep at most `maxItems`.
+- Filter out noise and near-duplicates.
 
-   ```
-   cache/scripts/<date>/<cat>.json
-   ```
+#### Strict script schema (follow exactly)
 
-#### STRICT script schema (to follow exactly)
-
-Pure JSON, **no** surrounding text, **no** markdown or emoji INSIDE the text:
+Pure JSON. No surrounding text, no markdown, no emoji inside the text fields.
 
 ```json
 {
-  "category": "<cat>",
   "date": "<date>",
-  "title": "Video title (short, catchy)",
+  "title": "Catchy on-screen video title",
+  "description": "2–4 sentence social caption that hooks and summarizes.",
+  "hashtags": ["#football", "#…"],
   "segments": [
-    { "type": "intro", "narration": "Spoken hook, 1 to 2 sentences." },
+    { "type": "intro", "hook": "1–2 punchy on-screen sentences." },
     {
       "type": "item",
       "headline": "Displayed title (<= 60 characters)",
       "body": "Displayed detail (<= 140 characters)",
-      "narration": "1 to 3 natural spoken sentences.",
       "url": "https://…",
       "source": "example.com"
     }
@@ -71,61 +70,47 @@ Pure JSON, **no** surrounding text, **no** markdown or emoji INSIDE the text:
 ```
 
 Rules:
-- Exactly **one** `intro` segment at the top, then **one** `item` segment per selected news item.
-- Do not exceed the category's `maxItems` (at most the number of items provided).
-- `headline` <= 60 characters, `body` <= 140 characters, `narration` = 1 to 3 spoken sentences.
+- Exactly **one** `intro` at the top, then **one** `item` per selected news (≤ `maxItems`).
+- Do **not** add an outro — the pipeline appends the "subscribe" scene automatically.
+- `headline` ≤ 60 characters, `body` ≤ 140 characters.
 - `url` and `source` copied faithfully from the source item.
-- `category` and `date` must match the file (`<cat>` and `<date>`).
+- `date` matches the file.
+- `hashtags`: 8–15 relevant, language-appropriate tags, each starting with `#`, no spaces.
 
-> The pipeline validates these scripts via a strict zod schema; an invalid JSON skips
-> the category. Take care to respect the fields and the limits.
+#### Editorial tone
 
-### 3. Build the videos (TTS + render)
+- `title` and each `headline` must **hook** — punchy, curiosity-driven, the catchy
+  tone of L'Equipe / Eurosport (slightly "clickbait").
+- **Stay true**: never invent facts, numbers, names or quotes. The headline must be
+  backed by the item.
+- `body` and `description` stay factual and informative — they deliver what the
+  headline promises.
 
-```bash
-pnpm feedreel run --mode file
-```
-
-In `--mode file`, the pipeline **reads** the scripts you wrote (it generates nothing on its own),
-synthesizes the FR voice (Kokoro), concatenates the audio and renders each MP4. A category with no
-written script is skipped; a failing category does not stop the others.
-
-### 4. Report the output paths
-
-Tell the user the videos produced:
-
-```
-output/<date>/<cat>.mp4
-```
-
-Explicitly list the generated files (absolute paths) and flag the categories
-skipped or in error.
-
-## Autonomous mode (alternative, no manual writing)
-
-For fully automatic generation (the pipeline writes the scripts via `claude -p`
-in headless mode), use:
+### 3. Render the video + caption
 
 ```bash
-pnpm feedreel run --mode auto
+pnpm feedreel render
 ```
 
-This is the mode used by the daily `launchd` job (07:00). Prefer the **file handoff
-mode** above when you want to control/refine the editorial content yourself.
+Reads your script, fits the background music, renders the MP4 (intro + items +
+auto subscribe outro), and writes the copy-paste caption.
 
-## (Optional) Social publishing
+Outputs:
 
-Once the videos are rendered, you can generate per-platform captions and then publish
-(opt-in, isolated, never triggered without an explicit command):
-
-```bash
-pnpm feedreel captions --date <date>            # → cache/metadata/<date>/<cat>.json (per language)
-pnpm feedreel publish  --date <date> --dry-run  # previews without any network call
-pnpm feedreel publish  --date <date>            # publishes (private by default), if credentials present
+```
+output/<date>.mp4    the video to upload
+output/<date>.txt    title + description + hashtags + source links (copy-paste)
 ```
 
-As with the scripts, captions have a **file handoff mode** (`--mode file`):
-you can write `cache/metadata/<date>/<cat>.json` yourself (`VideoMeta` schema:
-`{ language, youtube?, tiktok?, instagram?: { title, description, hashtags[] } }`) before
-`feedreel publish`. Without credentials (`.env`), each platform is **skipped cleanly**.
-Configuration: `config/publish.yaml`; credential setup: `docs/publish-setup.md`.
+### 4. Report
+
+Give the user the absolute path of `output/<date>.mp4` and print the contents of
+`output/<date>.txt` so they can copy the title/description/hashtags into their
+social posts.
+
+## Notes
+
+- A specific date: append `--date YYYY-MM-DD` to both `prepare` and `render`.
+- Switch feed set: `FEEDREEL_CONFIG=config/feedreel.tech.yaml pnpm feedreel prepare`.
+- Dedup is persisted in `feedreel.db`: items are marked seen only after a
+  successful `render`, so re-running `prepare` before rendering is safe.

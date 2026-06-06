@@ -32,7 +32,7 @@ let browserPromise: Promise<Browser> | null = null;
  * Bundles the Remotion project and returns the `serveUrl`.
  * The bundle is cached at module level: the first call builds it,
  * subsequent ones reuse the same promise (hence the same serveUrl).
- * On FAILURE, the cache is reset so that a later category can retry
+ * On FAILURE, the cache is reset so that a later call can retry
  * (otherwise a single transient failure would doom the whole run).
  */
 export async function bundleRemotion(cfg: GlobalConfig): Promise<string> {
@@ -49,9 +49,8 @@ export async function bundleRemotion(cfg: GlobalConfig): Promise<string> {
 }
 
 /**
- * Returns a shared headless Chromium instance (opened once for the whole run,
- * instead of 2 browsers per category). Reset if opening fails, to allow a retry.
- * RAM-efficient (16 GB budget, §16).
+ * Returns a shared headless Chromium instance (opened once per process).
+ * Reset if opening fails, to allow a retry.
  */
 async function getBrowser(): Promise<Browser> {
   if (browserPromise === null) {
@@ -77,12 +76,12 @@ export async function closeBrowser(): Promise<void> {
 }
 
 /**
- * Renders the category's video and returns the path to the final MP4.
+ * Renders the video and returns the path to the final MP4.
  *
  * Steps:
  *  1. bundle (cached) → serveUrl
  *  2. `selectComposition` id `FeedReelVideo` with the script as `inputProps`
- *  3. `renderMedia` H.264 WITHOUT audio (`muted`) to a temporary file (audioDir)
+ *  3. `renderMedia` H.264 WITHOUT audio (`muted`) to a temporary file
  *  4. ffmpeg muxing: copy video + encode AAC audio to `outputFile`
  *     (conditional: if audio is absent, the silent video is simply remuxed).
  */
@@ -92,14 +91,14 @@ export async function renderVideo(args: {
   date: string;
 }): Promise<string> {
   const { script, cfg, date } = args;
-  const p = paths(cfg, date, script.category);
+  const p = paths(cfg, date);
 
   // `inputProps` expects a Record<string, unknown>: the VideoScript is a flat serializable object.
   const inputProps = script as unknown as Record<string, unknown>;
 
   const serveUrl = await bundleRemotion(cfg);
   const browser = await getBrowser();
-  logger.info(`Bundle ready (${script.category}), selecting the FeedReelVideo composition.`);
+  logger.info('Bundle ready, selecting the FeedReelVideo composition.');
 
   const composition = await selectComposition({
     serveUrl,
@@ -108,12 +107,12 @@ export async function renderVideo(args: {
     puppeteerInstance: browser,
   });
 
-  // Temporary silent video in the category's audio directory.
-  const silentVideo = path.join(p.audioDir, 'video-silent.mp4');
-  ensureDir(p.audioDir);
+  // Temporary silent video next to the cached audio.
+  const silentVideo = path.join(cfg.cacheDir, 'audio', `${date}-silent.mp4`);
+  ensureDir(path.dirname(silentVideo));
 
   try {
-    logger.info(`Rendering silent video ${script.category} → ${silentVideo}`);
+    logger.info(`Rendering silent video → ${silentVideo}`);
     await renderMedia({
       composition,
       serveUrl,
@@ -134,7 +133,7 @@ export async function renderVideo(args: {
 
     if (hasAudio) {
       // Muxing: video copied as-is + audio track re-encoded to AAC.
-      logger.info(`Muxing AAC audio ${script.category} → ${p.outputFile}`);
+      logger.info(`Muxing AAC audio → ${p.outputFile}`);
       await execOrThrow('ffmpeg', [
         '-y',
         '-i',
@@ -152,20 +151,11 @@ export async function renderVideo(args: {
       ]);
     } else {
       // No audio: simply remux the silent video to the final output.
-      logger.warn(
-        `Audio missing for ${script.category}, output without audio track → ${p.outputFile}`,
-      );
-      await execOrThrow('ffmpeg', [
-        '-y',
-        '-i',
-        silentVideo,
-        '-c:v',
-        'copy',
-        p.outputFile,
-      ]);
+      logger.warn(`Audio missing, output without audio track → ${p.outputFile}`);
+      await execOrThrow('ffmpeg', ['-y', '-i', silentVideo, '-c:v', 'copy', p.outputFile]);
     }
   } finally {
-    // Clean up the silent intermediate (avoids disk accumulation per category/date).
+    // Clean up the silent intermediate (avoids disk accumulation).
     fs.rmSync(silentVideo, { force: true });
   }
 

@@ -1,24 +1,26 @@
 /**
- * Derives a restrained visual theme from a category's accent color.
- * All the styling (dark background, halo, grid, grain) is computed here, in code,
- * with no external dependency or image.
+ * Derives a restrained visual theme from the configured accent color.
+ * All the styling (dark background, halo, gradients, grain) is computed here, in
+ * code, with no external dependency or image.
  */
 
 /** Theme derived from an accent: values ready to inject as inline CSS. */
 export interface Theme {
   /** Raw accent (hex). */
   accent: string;
-  /** Very dark background tinted toward the accent. */
+  /** Brighter accent (glints, leading dot, hover energy). */
+  accentBright: string;
+  /** Linear gradient of the accent (buttons, bars). */
+  accentGradient: string;
+  /** Very dark page background (solid base color). */
   background: string;
-  /** Secondary background (cards, header). */
+  /** Rich page background gradient (adds depth vs a flat fill). */
+  pageGradient: string;
+  /** Secondary background (cards, header, chips). */
   surface: string;
-  /** Radial gradient of the accent halo (`background` value). */
+  /** Radial gradient of the accent halo. */
   halo: string;
-  /** Fine grid pattern (`background-image` value). */
-  grid: string;
-  /** Size of a grid cell (`background-size` value). */
-  gridSize: string;
-  /** Procedural grain layer (SVG data-URI, `background-image` value). */
+  /** Procedural grain layer (SVG data-URI). */
   grain: string;
   /** Primary text. */
   text: string;
@@ -26,6 +28,10 @@ export interface Theme {
   textMuted: string;
   /** Light translucent accent (borders, glows). */
   accentSoft: string;
+  /** Stronger translucent accent for the bold background glow. */
+  accentGlow: string;
+  /** Near-black text to sit ON the solid accent (slabs, highlighter). */
+  onAccent: string;
 }
 
 /** Normalizes a hex (#rgb or #rrggbb) into 0–255 components. */
@@ -53,9 +59,20 @@ function rgba(c: { r: number; g: number; b: number }, alpha: number): string {
   return `rgba(${c.r}, ${c.g}, ${c.b}, ${alpha})`;
 }
 
+/** Builds an `rgb(...)` string (clamped). */
+function rgb(c: { r: number; g: number; b: number }): string {
+  const cl = (n: number) => Math.max(0, Math.min(255, Math.round(n)));
+  return `rgb(${cl(c.r)}, ${cl(c.g)}, ${cl(c.b)})`;
+}
+
 /** Blends a component toward black by a factor (0 = black, 1 = unchanged). */
 function darken(value: number, factor: number): number {
   return Math.round(value * factor);
+}
+
+/** Blends a component toward white by a factor (0 = unchanged, 1 = white). */
+function lighten(value: number, factor: number): number {
+  return Math.round(value + (255 - value) * factor);
 }
 
 /**
@@ -66,21 +83,25 @@ export function deriveTheme(accentColor: string): Theme {
   const accent = accentColor && accentColor.startsWith('#') ? accentColor : '#4ea8ff';
   const c = hexToRgb(accent);
 
+  const bright = { r: lighten(c.r, 0.35), g: lighten(c.g, 0.35), b: lighten(c.b, 0.35) };
+  const deep = { r: darken(c.r, 0.72), g: darken(c.g, 0.72), b: darken(c.b, 0.72) };
+
   // Dark background slightly tinted toward the accent for chromatic unity.
-  const bg = { r: darken(c.r, 0.07), g: darken(c.g, 0.07), b: darken(c.b, 0.1) };
-  const background = `rgb(${Math.max(8, bg.r)}, ${Math.max(9, bg.g)}, ${Math.max(14, bg.b)})`;
-  const surface = rgba(c, 0.06);
+  const bg = { r: Math.max(8, darken(c.r, 0.07)), g: Math.max(9, darken(c.g, 0.07)), b: Math.max(14, darken(c.b, 0.1)) };
+  // A second, slightly bluer/darker anchor for the page gradient (adds depth).
+  const bg2 = { r: Math.max(4, bg.r - 4), g: Math.max(5, bg.g - 4), b: Math.max(9, bg.b - 2) };
+  const background = rgb(bg);
+  const surface = rgba(c, 0.07);
+
+  // Page gradient: top-tinted toward the accent, settling into a darker base.
+  const pageGradient =
+    `radial-gradient(120% 75% at 50% -15%, ${rgba(c, 0.22)} 0%, rgba(0,0,0,0) 55%), ` +
+    `linear-gradient(168deg, ${rgb(bg)} 0%, ${rgb(bg2)} 100%)`;
 
   // Soft radial halo at the top of the frame.
   const halo =
     `radial-gradient(120% 80% at 50% -10%, ${rgba(c, 0.32)} 0%, ` +
     `${rgba(c, 0.1)} 35%, rgba(0,0,0,0) 70%)`;
-
-  // Fine grid: two translucent linear gradients.
-  const line = rgba(c, 0.05);
-  const grid =
-    `linear-gradient(${line} 1px, transparent 1px), ` +
-    `linear-gradient(90deg, ${line} 1px, transparent 1px)`;
 
   // Procedural grain: SVG turbulence as a data-URI (no external file).
   const svg =
@@ -91,14 +112,18 @@ export function deriveTheme(accentColor: string): Theme {
 
   return {
     accent,
+    accentBright: rgb(bright),
+    accentGradient: `linear-gradient(135deg, ${rgb(bright)} 0%, ${accent} 55%, ${rgb(deep)} 100%)`,
     background,
+    pageGradient,
     surface,
     halo,
-    grid,
-    gridSize: '48px 48px',
     grain,
     text: '#f4f6fb',
-    textMuted: 'rgba(244, 246, 251, 0.62)',
-    accentSoft: rgba(c, 0.18),
+    textMuted: 'rgba(244, 246, 251, 0.6)',
+    accentSoft: rgba(c, 0.2),
+    accentGlow: rgba(c, 0.42),
+    // Very dark version of the accent: text that sits on the solid accent slab.
+    onAccent: rgb({ r: darken(c.r, 0.1), g: darken(c.g, 0.1), b: darken(c.b, 0.1) }),
   };
 }

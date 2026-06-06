@@ -1,25 +1,19 @@
 /**
- * "Music" mode (no voice-over): fixed scene durations + royalty-free background track.
+ * Soundtrack assembly (music only — no voice-over).
  *
- * Replaces the TTS step when `cfg.audio.mode === 'music'`. Scene durations come
- * from `cfg.audio.scene` (intro/item); a track is picked from
- * `cfg.audio.music.dir`, then fitted (loop/trim + fade) to the total video duration.
+ * Scene durations are fixed (`cfg.scene`: intro/item/outro). A background track is
+ * taken from `cfg.music.track` (or picked from `cfg.music.dir`), then fitted
+ * (loop/trim + fade) to the total video duration. A closing "subscribe" outro
+ * segment is appended automatically.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type {
-  CategoryConfig,
-  GlobalConfig,
-  RenderedSegment,
-  VideoScript,
-  VideoScriptInput,
-} from '../types';
-import { paths, resolveLanguage } from '../../config';
+import type { GlobalConfig, RenderedSegment, VideoScript, VideoScriptInput } from '../types';
+import { paths } from '../../config';
 import { execOrThrow } from '../exec';
-import { ensureDir } from '../util';
+import { ensureDir, framesForDuration } from '../util';
 import { createLogger } from '../log';
-import { framesForDuration } from './tts';
 
 const logger = createLogger('music');
 
@@ -27,8 +21,8 @@ const logger = createLogger('music');
 const AUDIO_EXT = new Set(['.mp3', '.wav', '.m4a', '.ogg', '.flac', '.aac', '.opus']);
 
 /**
- * Picks a track from the directory, DETERMINISTICALLY based on `seed`
- * (e.g. date+category): variety from one day/category to the next, yet reproducible.
+ * Picks a track from the directory, DETERMINISTICALLY based on `seed` (e.g. the
+ * date): variety from one day to the next, yet reproducible.
  * Returns the absolute path, or null if no track is available.
  */
 export function pickTrack(dir: string, seed: string): string | null {
@@ -82,64 +76,56 @@ export async function fitMusic(
 }
 
 /**
- * Assembles the video in music mode: fixed scene durations + fitted background track.
- * Returns the `VideoScript` ready for Remotion (without voice).
+ * Assembles the soundtrack: fixed scene durations (+ auto outro) and a fitted
+ * background track. Returns the `VideoScript` ready for Remotion.
  */
 export async function assembleMusicVideo(args: {
   script: VideoScriptInput;
-  category: CategoryConfig;
   cfg: GlobalConfig;
   date: string;
 }): Promise<VideoScript> {
-  const { script, category, cfg, date } = args;
-  const p = paths(cfg, date, category.id);
-  ensureDir(p.audioDir);
+  const { script, cfg, date } = args;
+  const p = paths(cfg, date);
+  const { introSec, itemSec, outroSec } = cfg.scene;
 
-  const { introSec, itemSec } = cfg.audio.scene;
-
-  // Fixed durations per segment type.
+  // Fixed durations per segment, then a synthetic "subscribe" outro at the end.
   const segments: RenderedSegment[] = script.segments.map((seg) => {
     const durationSec = seg.type === 'intro' ? introSec : itemSec;
-    return {
-      ...seg,
-      audioPath: '',
-      durationSec,
-      durationFrames: framesForDuration(durationSec, cfg.fps),
-    };
+    return { ...seg, durationSec, durationFrames: framesForDuration(durationSec, cfg.fps) };
+  });
+  segments.push({
+    type: 'outro',
+    durationSec: outroSec,
+    durationFrames: framesForDuration(outroSec, cfg.fps),
   });
 
   const totalSec = segments.reduce((s, seg) => s + seg.durationSec, 0);
 
-  // Background track: use the configured fixed track if present, otherwise pick from the directory.
-  const fixed = cfg.audio.music.track;
-  const track =
-    fixed && fs.existsSync(fixed) ? fixed : pickTrack(cfg.audio.music.dir, `${date}:${category.id}`);
+  // Background track: configured fixed track if present, otherwise pick from the dir.
+  const fixed = cfg.music.track;
+  const track = fixed && fs.existsSync(fixed) ? fixed : pickTrack(cfg.music.dir, date);
   let audioFile = '';
   if (track) {
     audioFile = p.audioFile;
-    await fitMusic(track, totalSec, audioFile, cfg.audio.music.fadeSec, cfg.audio.music.volume);
-    logger.info(
-      `track "${path.basename(track)}" fitted to ${totalSec.toFixed(1)}s for "${category.id}"`,
-    );
+    await fitMusic(track, totalSec, audioFile, cfg.music.fadeSec, cfg.music.volume);
+    logger.info(`track "${path.basename(track)}" fitted to ${totalSec.toFixed(1)}s`);
   } else {
     logger.warn(
-      `no track in ${cfg.audio.music.dir}: video "${category.id}" will have no music. Run the setup or drop an audio file.`,
+      `no track in ${cfg.music.dir}: the video will have no music. Run the setup or drop an audio file.`,
     );
   }
 
-  const language = resolveLanguage(cfg, category);
   return {
-    category: script.category,
     date: script.date,
     title: script.title,
     segments,
     audioFile,
-    emoji: category.emoji,
-    label: category.label,
-    accentColor: category.accentColor,
-    langCode: language.code,
-    uiLabel: language.uiLabel,
-    dateLocale: language.dateLocale,
+    emoji: cfg.video.emoji,
+    label: cfg.video.label,
+    accentColor: cfg.video.accentColor,
+    uiLabel: cfg.language.uiLabel,
+    dateLocale: cfg.language.dateLocale,
+    subscribeText: cfg.video.subscribeText,
     fps: cfg.fps,
     width: cfg.width,
     height: cfg.height,

@@ -57,10 +57,10 @@ export function exec(
     });
 
     // Error handler on stdin BEFORE any write: if the child closes/exits
-    // before reading the input (e.g. `claude -p` crashing, or killed by timeout),
-    // Node emits 'error' (EPIPE) on the stream. Without this handler, it becomes an
-    // uncaught exception that kills the WHOLE process and breaks per-category isolation
-    // (FR-6/FR-7). Ignored here: the failure is already reflected by the exit code/stderr.
+    // before reading the input (e.g. killed by timeout), Node emits 'error'
+    // (EPIPE) on the stream. Without this handler it becomes an uncaught
+    // exception that kills the whole process. Ignored here: the failure is
+    // already reflected by the exit code/stderr.
     child.stdin.on('error', () => {
       /* EPIPE / write-after-end: intentionally ignored (see above). */
     });

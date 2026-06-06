@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 /**
- * Minimal logger: console + optional file (timestamped logs for the launchd job).
+ * Minimal logger: console + optional timestamped file.
  * Set FEEDREEL_LOG_FILE to enable file writing.
  */
 

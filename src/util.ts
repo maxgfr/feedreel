@@ -44,3 +44,11 @@ export function truncate(text: string, max: number): string {
   const lastSpace = slice.lastIndexOf(' ');
   return (lastSpace > max * 0.6 ? slice.slice(0, lastSpace) : slice).trimEnd() + '…';
 }
+
+/**
+ * Number of frames covering a given duration (PURE).
+ * Always ≥ 1 frame, even for a tiny duration.
+ */
+export function framesForDuration(durationSec: number, fps: number): number {
+  return Math.max(1, Math.ceil(durationSec * fps));
+}

@@ -3,13 +3,9 @@ dist/
 output/
 cache/
 logs/
-# Secrets de publication réseaux (jamais commités)
 .env
 .env.*
 !.env.example
-.venv/
-.venv-piper/
-.venv-xtts/
 *.db
 *.db-journal
 *.db-wal
@@ -19,16 +15,18 @@ remotion-bundle/
 # Vendored fonts (downloaded at setup) — keep the dir, ignore the binaries
 src/remotion/fonts/*.woff2
 public/fonts/*.woff2
-# CC0 music tracks + voice models (downloaded at setup, large)
+# CC0 music tracks (downloaded at setup, large)
 assets/music/*.mp3
 assets/music/*.wav
 assets/music/*.m4a
 assets/music/*.ogg
 # Default shipped track (committed; other tracks are downloaded at setup)
 !assets/music/morning-sky-by-roa-music.mp3
-voices/*.onnx
-voices/*.onnx.json
 src/remotion/fonts/*.ttf
+# Private RSS configs — never committed (only the example template is)
+config/feedreel.yaml
+config/feedreel.*.yaml
+!config/feedreel.example.yaml
 # Internal planning specs (development artifacts, not part of the shipped project)
 docs/superpowers/
 # Third-party installed agent skills (not part of this project)

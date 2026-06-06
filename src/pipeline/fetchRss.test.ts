@@ -1,13 +1,13 @@
 /**
  * Unit tests for fetchRss: no real network dependency.
  *  - `normalizeRssItems` is tested as a pure function against a fixture.
- *  - `fetchCategory` is tested with a mocked `global.fetch` (rejection) to
- *    verify that a failing feed does not crash the category.
+ *  - `fetchFeeds` is tested with a mocked `global.fetch` (rejection) to verify
+ *    that a failing feed does not crash the run.
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CategoryConfig, GlobalConfig } from '../types';
-import { fetchCategory, normalizeRssItems } from './fetchRss';
+import type { GlobalConfig } from '../types';
+import { fetchFeeds, normalizeRssItems } from './fetchRss';
 
 /** Parsed feed object (rss-parser shape) used as a fixture. */
 const parsedFeedFixture = {
@@ -49,7 +49,7 @@ const parsedFeedFixture = {
 
 describe('normalizeRssItems', () => {
   it('normalizes a parsed feed: HTML stripped, truncation, domain, ISO date, id, dedup', () => {
-    const items = normalizeRssItems(parsedFeedFixture, 'securite');
+    const items = normalizeRssItems(parsedFeedFixture);
 
     // De-duplication by id + rejection of the item without identifier: 2 items remaining.
     expect(items).toHaveLength(2);
@@ -59,8 +59,6 @@ describe('normalizeRssItems', () => {
 
     // id = guid when present.
     expect(first.id).toBe('guid-001');
-    // category copied through.
-    expect(first.category).toBe('securite');
     // url = link.
     expect(first.url).toBe('https://krebsonsecurity.com/2026/06/article-a/');
     // source = domain without www.
@@ -86,10 +84,9 @@ describe('normalizeRssItems', () => {
   it('falls back publishedAt to the epoch floor when the date is missing or invalid', () => {
     // An unreadable date must NOT be treated as "the freshest" (otherwise it would
     // disrupt the freshness sort of the dedup): we rank it last.
-    const items = normalizeRssItems(
-      { items: [{ guid: 'x', link: 'https://example.com/a', title: 'T', pubDate: 'not-a-date' }] },
-      'ia',
-    );
+    const items = normalizeRssItems({
+      items: [{ guid: 'x', link: 'https://example.com/a', title: 'T', pubDate: 'not-a-date' }],
+    });
     expect(items).toHaveLength(1);
     const item = items[0];
     if (!item) throw new Error('missing item');
@@ -97,32 +94,30 @@ describe('normalizeRssItems', () => {
   });
 
   it('returns an empty array for an unusable input', () => {
-    expect(normalizeRssItems(null, 'ia')).toEqual([]);
-    expect(normalizeRssItems({}, 'ia')).toEqual([]);
-    expect(normalizeRssItems({ items: 'not-an-array' }, 'ia')).toEqual([]);
+    expect(normalizeRssItems(null)).toEqual([]);
+    expect(normalizeRssItems({})).toEqual([]);
+    expect(normalizeRssItems({ items: 'not-an-array' })).toEqual([]);
   });
 });
 
-/** Minimal config for `fetchCategory` (only feedTimeoutMs matters here). */
+/** Minimal config for `fetchFeeds` (only feedTimeoutMs matters here). */
 const cfg: GlobalConfig = {
   projectRoot: '/tmp/project',
   outputDir: '/tmp/project/output',
   cacheDir: '/tmp/project/cache',
   dbPath: '/tmp/project/feedreel.db',
-  voice: 'ff_siwis',
-  pythonBin: '/tmp/project/.venv/bin/python',
-  claudeBin: 'claude',
-  ttsScript: '/tmp/project/scripts/tts.py',
   fps: 30,
   width: 1080,
   height: 1920,
   feedTimeoutMs: 50,
-  defaultLanguage: 'fr',
-  languages: { fr: { code: 'fr', name: 'français', uiLabel: 'VEILLE', dateLocale: 'fr-FR', tts: { engine: 'kokoro', voice: 'ff_siwis' } } },
-  audio: { mode: 'music', music: { dir: 'assets/music', fadeSec: 1.5, volume: 1 }, scene: { introSec: 3, itemSec: 4 } },
+  language: { name: 'English', uiLabel: 'FOOTBALL', dateLocale: 'en-US' },
+  video: { label: 'Football', emoji: '⚽', accentColor: '#22c55e', maxItems: 6, subscribeText: 'Subscribe' },
+  feeds: [],
+  music: { dir: 'assets/music', fadeSec: 1.5, volume: 1 },
+  scene: { introSec: 3, itemSec: 4, outroSec: 3 },
 };
 
-describe('fetchCategory', () => {
+describe('fetchFeeds', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -134,35 +129,16 @@ describe('fetchCategory', () => {
       vi.fn(() => Promise.reject(new Error('network unavailable'))),
     );
 
-    const category: CategoryConfig = {
-      id: 'securite',
-      label: 'Security',
-      emoji: '🛡️',
-      accentColor: '#ff5577',
-      maxItems: 6,
-      feeds: ['https://feed-a.test/rss', 'https://feed-b.test/rss'],
-    };
-
-    const items = await fetchCategory(category, cfg);
+    const items = await fetchFeeds(['https://feed-a.test/rss', 'https://feed-b.test/rss'], cfg);
     // All feeds failed: no items, but no exception.
     expect(items).toEqual([]);
   });
 
-  it('returns an empty array with no feeds (aggregated category)', async () => {
+  it('returns an empty array with no feeds (no network call)', async () => {
     const fetchSpy = vi.fn(() => Promise.reject(new Error('must not be called')));
     vi.stubGlobal('fetch', fetchSpy);
 
-    const aggregate: CategoryConfig = {
-      id: 'global',
-      label: 'Global',
-      emoji: '🌍',
-      accentColor: '#4ea8ff',
-      maxItems: 6,
-      aggregate: true,
-      feeds: [],
-    };
-
-    const items = await fetchCategory(aggregate, cfg);
+    const items = await fetchFeeds([], cfg);
     expect(items).toEqual([]);
     expect(fetchSpy).not.toHaveBeenCalled();
   });

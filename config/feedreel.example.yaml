@@ -1,0 +1,44 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  feedreel — config TEMPLATE (committed). Copy to config/feedreel.yaml and edit.
+#    cp config/feedreel.example.yaml config/feedreel.yaml
+#  config/feedreel.yaml is gitignored so your real RSS feeds stay private.
+# ════════════════════════════════════════════════════════════════════════════
+
+# Vertical short format.
+format:
+  width: 1080
+  height: 1920
+  fps: 30
+
+# Language identity (labels + date format).
+language:
+  name: English
+  uiLabel: NEWS
+  dateLocale: en-US
+
+# Editorial identity of the video.
+video:
+  label: Daily News
+  emoji: 📰
+  accentColor: '#4ea8ff'
+  maxItems: 10
+  # Closing call-to-action shown on the auto "subscribe" scene.
+  subscribeText: "Follow for your daily recap"
+
+# RSS/Atom feeds (the day's items are pulled and deduplicated from these).
+feeds:
+  - https://example.com/feed.xml
+  - https://news.google.com/rss/search?q=your%20topic&hl=en-US&gl=US&ceid=US:en
+
+# Royalty-free background music (the only soundtrack — no voice).
+music:
+  track: assets/music/morning-sky-by-roa-music.mp3
+  dir: assets/music
+  fadeSec: 1.5
+  volume: 1.0
+
+# Fixed scene durations (seconds).
+scene:
+  introSec: 3
+  itemSec: 4
+  outroSec: 3

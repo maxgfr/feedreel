@@ -1,22 +1,22 @@
 /**
- * Fetching and normalization of a category's RSS/Atom feeds (FR-1).
+ * Fetching and normalization of the RSS/Atom feeds.
  *
  * Two responsibilities:
  *  - `normalizeRssItems`: a PURE function that turns a parsed feed object
  *    (output of rss-parser) into an array of normalized, de-duplicated `RssItem`.
- *  - `fetchCategory`: a network side effect that downloads all of the category's
- *    feeds in parallel, parses each one, then aggregates the normalized items.
+ *  - `fetchFeeds`: a network side effect that downloads all feeds in parallel,
+ *    parses each one, then aggregates the normalized items.
  *    A failing feed is silently ignored (warn log, we keep going).
  */
 
 import Parser from 'rss-parser';
-import type { CategoryConfig, GlobalConfig, RssItem } from '../types';
+import type { GlobalConfig, RssItem } from '../types';
 import { domainOf, stripHtml, truncate } from '../util';
 import { createLogger } from '../log';
 
 const logger = createLogger('fetchRss');
 
-/** Maximum length of the normalized summary (see contract §FR-1). */
+/** Maximum length of the normalized summary. */
 const SUMMARY_MAX = 280;
 
 /** Minimal (and lenient) shape of a feed entry as produced by rss-parser. */
@@ -43,7 +43,7 @@ const DATE_FLOOR = new Date(0).toISOString();
  * Converts a date (isoDate then pubDate) into an ISO 8601 string.
  * Falls back to a FLOOR (epoch) if nothing usable: an item without a date must
  * not be wrongly treated as "the freshest" (which would disrupt the freshness
- * sort of the dedup and the 'global' aggregation). It is therefore ranked last.
+ * sort). It is therefore ranked last.
  */
 function toIsoDate(isoDate?: string, pubDate?: string): string {
   const candidate = isoDate ?? pubDate;
@@ -61,13 +61,10 @@ function toIsoDate(isoDate?: string, pubDate?: string): string {
  *  - `id` = guid otherwise link; an entry without guid or link is discarded.
  *  - `url` = link (otherwise, failing that, the guid); `source` = domain of the url.
  *  - `summary` = `truncate(stripHtml(contentSnippet|content|summary), 280)`.
- *  - `publishedAt` = ISO 8601 from isoDate|pubDate (fallback: now).
+ *  - `publishedAt` = ISO 8601 from isoDate|pubDate (fallback: epoch floor).
  *  - de-duplication by `id` (first occurrence kept).
- *
- * @param parsed Object returned by `Parser.parseString` (typed `unknown` per contract).
- * @param categoryId Identifier of the category, copied into each item.
  */
-export function normalizeRssItems(parsed: unknown, categoryId: string): RssItem[] {
+export function normalizeRssItems(parsed: unknown): RssItem[] {
   const rawItems = extractItems(parsed);
   const result: RssItem[] = [];
   const seen = new Set<string>();
@@ -81,11 +78,11 @@ export function normalizeRssItems(parsed: unknown, categoryId: string): RssItem[
     seen.add(id);
 
     const url = link ?? guid ?? '';
-    const rawSummary = asString(raw.contentSnippet) ?? asString(raw.content) ?? asString(raw.summary) ?? '';
+    const rawSummary =
+      asString(raw.contentSnippet) ?? asString(raw.content) ?? asString(raw.summary) ?? '';
 
     result.push({
       id,
-      category: categoryId,
       title: asString(raw.title) ?? '',
       url,
       summary: truncate(stripHtml(rawSummary), SUMMARY_MAX),
@@ -112,11 +109,7 @@ function extractItems(parsed: unknown): RawFeedItem[] {
  * Any error (timeout, non-OK HTTP, parse) is propagated to the caller
  * (caught higher up by `Promise.allSettled`).
  */
-async function fetchFeed(
-  feedUrl: string,
-  categoryId: string,
-  cfg: GlobalConfig,
-): Promise<RssItem[]> {
+async function fetchFeed(feedUrl: string, cfg: GlobalConfig): Promise<RssItem[]> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), cfg.feedTimeoutMs);
   try {
@@ -126,31 +119,26 @@ async function fetchFeed(
     }
     const xml = await response.text();
     const parsed = await new Parser().parseString(xml);
-    return normalizeRssItems(parsed, categoryId);
+    return normalizeRssItems(parsed);
   } finally {
     clearTimeout(timer);
   }
 }
 
 /**
- * Fetches ALL of the category's feeds in parallel (`Promise.allSettled`).
+ * Fetches ALL feeds in parallel (`Promise.allSettled`).
  * A failing feed is silently ignored (warn log, we keep going).
  * The items from successful feeds are aggregated then de-duplicated by `id`
- * at the category scope (the same article may appear in 2 feeds).
+ * (the same article may appear in two feeds).
  */
-export async function fetchCategory(
-  category: CategoryConfig,
-  cfg: GlobalConfig,
-): Promise<RssItem[]> {
-  const settled = await Promise.allSettled(
-    category.feeds.map((feedUrl) => fetchFeed(feedUrl, category.id, cfg)),
-  );
+export async function fetchFeeds(feeds: string[], cfg: GlobalConfig): Promise<RssItem[]> {
+  const settled = await Promise.allSettled(feeds.map((feedUrl) => fetchFeed(feedUrl, cfg)));
 
   const merged: RssItem[] = [];
   const seen = new Set<string>();
 
   settled.forEach((outcome, index) => {
-    const feedUrl = category.feeds[index] ?? '<unknown>';
+    const feedUrl = feeds[index] ?? '<unknown>';
     if (outcome.status === 'rejected') {
       logger.warn(`Feed ignored (${feedUrl}): ${String(outcome.reason)}`);
       return;
