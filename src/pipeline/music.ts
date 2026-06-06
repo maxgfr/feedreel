@@ -126,6 +126,7 @@ export async function assembleMusicVideo(args: {
     uiLabel: cfg.language.uiLabel,
     dateLocale: cfg.language.dateLocale,
     subscribeText: cfg.video.subscribeText,
+    commentPrompt: script.commentPrompt ?? '',
     fps: cfg.fps,
     width: cfg.width,
     height: cfg.height,

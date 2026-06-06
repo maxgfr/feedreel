@@ -140,6 +140,11 @@ export interface VideoScriptInput {
   title: string;
   description: string;
   hashtags: string[];
+  /**
+   * Optional comment-bait question tied to the day's news, displayed on the
+   * closing scene to push viewers to reply (e.g. "Scandal or fair? 👇").
+   */
+  commentPrompt?: string;
   segments: ScriptSegmentInput[];
 }
 
@@ -175,6 +180,8 @@ export interface VideoScript {
   dateLocale: string;
   /** Closing "subscribe" call-to-action. */
   subscribeText: string;
+  /** News-tied question shown on the outro to push viewers to comment ('' if none). */
+  commentPrompt: string;
   // Format.
   fps: number;
   width: number;

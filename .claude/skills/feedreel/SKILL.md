@@ -56,6 +56,7 @@ Pure JSON. No surrounding text, no markdown, no emoji inside the text fields.
   "title": "Catchy on-screen video title",
   "description": "2–4 sentence social caption that hooks and summarizes.",
   "hashtags": ["#football", "#…"],
+  "commentPrompt": "Short question tied to a real story of the day, ending with 👇",
   "segments": [
     { "type": "intro", "hook": "1–2 punchy on-screen sentences." },
     {
@@ -76,6 +77,10 @@ Rules:
 - `url` and `source` copied faithfully from the source item.
 - `date` matches the file.
 - `hashtags`: 8–15 relevant, language-appropriate tags, each starting with `#`, no spaces.
+- `commentPrompt` (recommended): ONE short comment-bait question, **tied to a real
+  story you selected today** (name the actual subject), ≤ ~90 characters, ending
+  with a 👇-style nudge. It is displayed on the closing scene to push viewers to
+  reply. Stay true — never invent facts. Omit the field if nothing fits.
 
 #### Editorial tone
 

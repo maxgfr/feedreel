@@ -1,7 +1,8 @@
 /**
  * Outro scene (auto-appended): a full-screen "subscribe" call-to-action.
  * Bold broadcast look: emoji tile, a glowing SUBSCRIBE pill (gradient + bell +
- * arrow) with a gentle pulse, the configurable CTA line, and a handle divider.
+ * arrow) with a gentle pulse, the configurable CTA line, an optional comment
+ * card tied to the day's news ("Join the debate"), and a handle divider.
  * Music only (no voice-over).
  */
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
@@ -11,13 +12,24 @@ import { FONTS } from '../fonts';
 interface OutroSceneProps {
   /** Configurable call-to-action (e.g. "Follow for daily football news"). */
   subscribeText: string;
+  /**
+   * Optional news-tied question pushing viewers to comment (e.g.
+   * "Scandal or fair? 👇"). When empty, the comment card is not rendered.
+   */
+  commentPrompt: string;
   /** Header label prefix per language (e.g. "FOOTBALL"). */
   uiLabel: string;
   emoji: string;
   theme: Theme;
 }
 
-export function OutroScene({ subscribeText, uiLabel, emoji, theme }: OutroSceneProps): React.ReactElement {
+export function OutroScene({
+  subscribeText,
+  commentPrompt,
+  uiLabel,
+  emoji,
+  theme,
+}: OutroSceneProps): React.ReactElement {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -27,7 +39,10 @@ export function OutroScene({ subscribeText, uiLabel, emoji, theme }: OutroSceneP
   const emojiIn = enter(0);
   const buttonIn = enter(8);
   const ctaIn = enter(20);
-  const handleIn = enter(28);
+  const commentIn = enter(26);
+  const handleIn = enter(36);
+
+  const hasComment = typeof commentPrompt === 'string' && commentPrompt.trim() !== '';
 
   // Gentle continuous pulse on the subscribe pill.
   const pulse = 1 + 0.035 * Math.sin((frame / fps) * Math.PI * 2 * 0.9);
@@ -111,6 +126,61 @@ export function OutroScene({ subscribeText, uiLabel, emoji, theme }: OutroSceneP
         >
           {subscribeText}
         </p>
+
+        {/* Comment card (news-tied) — pushes viewers to reply. */}
+        {hasComment && (
+          <div
+            style={{
+              opacity: commentIn,
+              transform: `translateY(${(1 - commentIn) * 24}px)`,
+              marginTop: 52,
+              width: '100%',
+              maxWidth: 860,
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 18,
+              padding: '32px 40px',
+              borderRadius: 30,
+              background: theme.surface,
+              border: `2px solid ${theme.accentSoft}`,
+              boxShadow: '0 16px 48px rgba(0,0,0,0.35)',
+            }}
+          >
+            {/* "💬 JOIN THE DEBATE" badge row. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <span style={{ fontSize: 46, lineHeight: 1 }}>💬</span>
+              <span
+                style={{
+                  fontFamily: FONTS.mono,
+                  fontSize: 30,
+                  fontWeight: 700,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  color: theme.accentBright,
+                }}
+              >
+                Join the debate
+              </span>
+            </div>
+
+            {/* The news-tied question. */}
+            <p
+              style={{
+                fontFamily: FONTS.sans,
+                fontWeight: 700,
+                fontSize: 46,
+                lineHeight: 1.28,
+                textAlign: 'center',
+                color: theme.text,
+                margin: 0,
+              }}
+            >
+              {commentPrompt}
+            </p>
+          </div>
+        )}
 
         {/* Handle divider: ── uiLabel ── */}
         <div

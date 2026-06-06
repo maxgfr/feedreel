@@ -65,8 +65,18 @@ export const calculateFeedReelMetadata: CalculateMetadataFunction<FeedReelProps>
 
 /** Main Remotion composition. */
 export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
-  const { title, date, emoji, label, accentColor, segments, uiLabel, dateLocale, subscribeText } =
-    props;
+  const {
+    title,
+    date,
+    emoji,
+    label,
+    accentColor,
+    segments,
+    uiLabel,
+    dateLocale,
+    subscribeText,
+    commentPrompt,
+  } = props;
 
   // Load the OFL fonts (idempotent, fails silently).
   loadFonts();
@@ -122,6 +132,7 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
                   <Series.Sequence key={key} durationInFrames={durationInFrames}>
                     <OutroScene
                       subscribeText={subscribeText}
+                      commentPrompt={commentPrompt}
                       uiLabel={uiLabel}
                       emoji={emoji}
                       theme={theme}
@@ -201,6 +212,7 @@ export const defaultFeedReelProps: FeedReelProps = {
   uiLabel: 'FOOTBALL',
   dateLocale: 'en-US',
   subscribeText: 'Follow for daily football news',
+  commentPrompt: 'Late winner or lucky bounce? Drop your verdict 👇',
   fps: 30,
   width: 1080,
   height: 1920,

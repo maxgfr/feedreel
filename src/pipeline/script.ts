@@ -29,6 +29,7 @@ export const VideoScriptSchema: z.ZodType<VideoScriptInput> = z.object({
   title: z.string().min(1),
   description: z.string(),
   hashtags: z.array(z.string()),
+  commentPrompt: z.string().optional(),
   segments: z.array(ScriptSegmentSchema).min(1),
 });
 
