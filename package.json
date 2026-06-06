@@ -1,0 +1,55 @@
+{
+  "name": "feedreel",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first generator of daily tech-watch short videos (multilingual), with auto-generated captions and opt-in publishing to YouTube Shorts, TikTok and Instagram Reels.",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  },
+  "bin": {
+    "feedreel": "./bin/feedreel.mjs"
+  },
+  "scripts": {
+    "feedreel": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "tsx scripts/build.ts",
+    "setup": "bash scripts/setup.sh"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1063.0",
+    "@aws-sdk/s3-request-presigner": "^3.1063.0",
+    "@googleapis/youtube": "^33.0.0",
+    "@remotion/bundler": "^4.0.473",
+    "@remotion/cli": "^4.0.473",
+    "@remotion/renderer": "^4.0.473",
+    "better-sqlite3": "^11.8.1",
+    "commander": "^13.1.0",
+    "dotenv": "^17.4.2",
+    "google-auth-library": "^10.7.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "remotion": "^4.0.473",
+    "rss-parser": "^3.13.0",
+    "yaml": "^2.9.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.1",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

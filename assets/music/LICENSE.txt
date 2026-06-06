@@ -1,0 +1,5 @@
+Pistes musicales — licence CC0 1.0 (domaine public, aucune attribution requise).
+Source : https://github.com/SoundSafari/CC0-1.0-Music
+
+Vous pouvez remplacer/ajouter librement vos propres pistes (.mp3, .wav, .m4a, .ogg)
+dans ce dossier ; le pipeline en pioche une par vidéo.

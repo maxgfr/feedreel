@@ -1,0 +1,36 @@
+node_modules/
+dist/
+output/
+cache/
+logs/
+# Secrets de publication réseaux (jamais commités)
+.env
+.env.*
+!.env.example
+.venv/
+.venv-piper/
+.venv-xtts/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.DS_Store
+remotion-bundle/
+# Vendored fonts (downloaded at setup) — keep the dir, ignore the binaries
+src/remotion/fonts/*.woff2
+public/fonts/*.woff2
+# Pistes musicales CC0 + modèles de voix (téléchargés au setup, lourds)
+assets/music/*.mp3
+assets/music/*.wav
+assets/music/*.m4a
+assets/music/*.ogg
+voices/*.onnx
+voices/*.onnx.json
+src/remotion/fonts/*.ttf
+# Internal planning specs (development artifacts, not part of the shipped project)
+docs/superpowers/
+# Third-party installed agent skills (not part of this project)
+.agents/
+skills-lock.json
+# Local Claude Code settings
+.claude/settings.local.json

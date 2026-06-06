@@ -1,0 +1,40 @@
+# ════════════════════════════════════════════════════════════════════════════
+#  Social publishing configuration — COPY to `config/publish.yaml`.
+#  OPTIONAL file: absent → `enabled: false` (the daily job does not publish;
+#  `feedreel publish` stays usable explicitly). Validated by zod on load.
+#  No secrets here — tokens live in `.env` (see .env.example).
+# ════════════════════════════════════════════════════════════════════════════
+
+# Master switch for AUTOMATIC publishing of the daily job (launchd).
+enabled: false
+
+# Default visibility of publications (private | unlisted | public).
+defaultPrivacy: private
+
+captions:
+  mode: auto            # auto = claude -p (autonomous); file = handoff via skill
+
+platforms:
+  youtube:
+    enabled: true
+    categoryId: "28"    # 28 = Science & Technology
+  tiktok:
+    enabled: true
+    mode: inbox         # inbox = draft (no review); direct = public post (review required)
+  instagram:
+    enabled: true
+
+# Temporary public HTTPS hosting (Meta downloads the MP4 from a URL).
+hosting:
+  provider: r2          # r2 | s3
+  bucket: ""            # or via env R2_BUCKET / S3_BUCKET
+  publicBaseUrl: ""     # or via env R2_PUBLIC_BASE_URL / S3_PUBLIC_BASE_URL
+
+# Optional per-language overrides (all optional). By default, Claude
+# generates titles/desc/hashtags from the category language; these settings
+# only serve for fine-tuning (e.g. per-language brand hashtags).
+i18n:
+  fr:
+    baseHashtags: ["#veilletech", "#techfr"]
+  en:
+    baseHashtags: ["#technews", "#devtok"]
