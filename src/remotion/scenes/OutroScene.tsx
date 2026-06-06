@@ -12,6 +12,10 @@ import { FONTS } from '../fonts';
 interface OutroSceneProps {
   /** Configurable call-to-action (e.g. "Follow for daily football news"). */
   subscribeText: string;
+  /** Localizable subscribe-button label (e.g. "Subscribe"). */
+  subscribeLabel: string;
+  /** Localizable comment-card badge (e.g. "Join the debate"). */
+  joinLabel: string;
   /**
    * Optional news-tied question pushing viewers to comment (e.g.
    * "Scandal or fair? 👇"). When empty, the comment card is not rendered.
@@ -25,6 +29,8 @@ interface OutroSceneProps {
 
 export function OutroScene({
   subscribeText,
+  subscribeLabel,
+  joinLabel,
   commentPrompt,
   uiLabel,
   emoji,
@@ -105,7 +111,7 @@ export function OutroScene({
               textTransform: 'uppercase',
             }}
           >
-            Subscribe
+            {subscribeLabel}
           </span>
         </div>
 
@@ -161,7 +167,7 @@ export function OutroScene({
                   color: theme.accentBright,
                 }}
               >
-                Join the debate
+                {joinLabel}
               </span>
             </div>
 

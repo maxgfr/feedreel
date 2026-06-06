@@ -81,7 +81,7 @@ export async function render(args: { date?: string } = {}): Promise<RenderResult
   // Copy-paste caption (title + description + hashtags + sources).
   const textFile = p.textFile;
   ensureDir(path.dirname(textFile));
-  fs.writeFileSync(textFile, buildCaption(script), 'utf8');
+  fs.writeFileSync(textFile, buildCaption(script, cfg.language.sourcesLabel), 'utf8');
   log.info(`Caption written → ${textFile}`);
 
   // Mark the day's items as seen now that the video succeeded (idempotent).

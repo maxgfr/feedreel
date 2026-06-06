@@ -13,10 +13,12 @@ interface IntroSceneProps {
   hook?: string;
   /** Number of ranked items (drives the "TOP N" kicker). */
   itemCount: number;
+  /** Localizable kicker label before the count (e.g. "Top"). */
+  topLabel: string;
   theme: Theme;
 }
 
-export function IntroScene({ title, hook, itemCount, theme }: IntroSceneProps): React.ReactElement {
+export function IntroScene({ title, hook, itemCount, topLabel, theme }: IntroSceneProps): React.ReactElement {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -65,7 +67,7 @@ export function IntroScene({ title, hook, itemCount, theme }: IntroSceneProps): 
                 boxShadow: `0 10px 30px ${theme.accentGlow}`,
               }}
             >
-              Top {itemCount}
+              {topLabel} {itemCount}
             </div>
           ) : null}
 

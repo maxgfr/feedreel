@@ -21,6 +21,12 @@ const ScriptSegmentSchema = z.object({
   body: z.string().optional(),
   url: z.string().optional(),
   source: z.string().optional(),
+  // Optional scoreboard (item): both teams → scoreboard layout; scores optional.
+  home: z.string().optional(),
+  away: z.string().optional(),
+  homeScore: z.number().int().nonnegative().optional(),
+  awayScore: z.number().int().nonnegative().optional(),
+  competition: z.string().optional(),
 });
 
 /** Zod schema for the video script written by the skill. */
@@ -90,14 +96,15 @@ export function loadScript(scriptFile: string): VideoScriptInput {
 /**
  * Builds the copy-paste caption (title + description + hashtags + source links)
  * written next to the MP4 for manual posting. PURE.
+ * `sourcesLabel` is the localizable heading for the source list (e.g. "Sources").
  */
-export function buildCaption(script: VideoScriptInput): string {
+export function buildCaption(script: VideoScriptInput, sourcesLabel = 'Sources'): string {
   const sources = script.segments
     .filter((s) => s.type === 'item' && typeof s.url === 'string' && s.url !== '')
     .map((s) => `- ${s.source ?? ''} : ${s.url}`);
 
   const blocks = [script.title.trim(), script.description.trim()];
   if (script.hashtags.length > 0) blocks.push(script.hashtags.join(' '));
-  if (sources.length > 0) blocks.push(['Sources:', ...sources].join('\n'));
+  if (sources.length > 0) blocks.push([`${sourcesLabel}:`, ...sources].join('\n'));
   return blocks.filter((b) => b.length > 0).join('\n\n') + '\n';
 }

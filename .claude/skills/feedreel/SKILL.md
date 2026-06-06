@@ -41,8 +41,16 @@ a video from today, and stop.
 
 Read `cache/items/<date>.json`, then write `cache/scripts/<date>.json`.
 
-- Read `config/feedreel.yaml` to know `video.maxItems`, `video.label` and
-  `language` (write everything in that language).
+- Read `config/feedreel.yaml` to know `video.maxItems`, `video.label` and the
+  `language` block.
+- **Output language** = `language.name`. Write EVERYTHING (title, headlines,
+  bodies, description, hashtags, commentPrompt) in that language.
+- **Geographic scope** = `language.region` (separate from the language):
+  - `int` or `international` → worldwide: pick results/news from every country and
+    confederation, a globally representative spread. Do NOT over-index on one
+    nation just because of the output language.
+  - any other value (e.g. `France`, `England`, `US`) → focus on that country/region.
+  - If `region` is missing, default to `int` (worldwide).
 - Select and **rank** the items by importance/appeal; keep at most `maxItems`.
 - Filter out noise and near-duplicates.
 
@@ -65,6 +73,15 @@ Pure JSON. No surrounding text, no markdown, no emoji inside the text fields.
       "body": "Displayed detail (<= 140 characters)",
       "url": "https://…",
       "source": "example.com"
+    },
+    {
+      "type": "item",
+      "home": "France", "away": "Spain",
+      "homeScore": 2, "awayScore": 1,
+      "competition": "International friendly",
+      "body": "Optional one-line context shown under the scoreboard.",
+      "url": "https://…",
+      "source": "example.com"
     }
   ]
 }
@@ -73,6 +90,15 @@ Pure JSON. No surrounding text, no markdown, no emoji inside the text fields.
 Rules:
 - Exactly **one** `intro` at the top, then **one** `item` per selected news (≤ `maxItems`).
 - Do **not** add an outro — the pipeline appends the "subscribe" scene automatically.
+- **Scoreboard items (prefer for match results/fixtures):** set both `home` and
+  `away` to render a clean scoreboard instead of a text card. Add `homeScore` +
+  `awayScore` (integers) to show a **result** — the winner is highlighted; omit
+  them to show an upcoming **fixture** (VS). `competition` is an optional label
+  above the score (e.g. "World Cup warm-up", "Friendly · FT"). When you use a
+  scoreboard you can drop `headline` (the teams are the title); keep `body` for a
+  short context line. NEVER invent a scoreline — only add scores you can back from
+  the source. Use a plain `headline`/`body` item for non-match stories (round-ups,
+  transfers, analysis).
 - `headline` ≤ 60 characters, `body` ≤ 140 characters.
 - `url` and `source` copied faithfully from the source item.
 - `date` matches the file.

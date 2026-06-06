@@ -11,6 +11,15 @@ const LanguageSchema = z.object({
   name: z.string().min(1),
   uiLabel: z.string().min(1),
   dateLocale: z.string().min(1),
+  // Editorial scope read by the skill: "int" = international (worldwide),
+  // otherwise a country/region to focus on. Defaults to "int".
+  region: z.string().min(1).default('int'),
+  // On-screen UI labels — localize these so the video is fully language-generic.
+  // Defaults keep English working when the keys are absent from the YAML.
+  topLabel: z.string().min(1).default('Top'),
+  subscribeLabel: z.string().min(1).default('Subscribe'),
+  joinLabel: z.string().min(1).default('Join the debate'),
+  sourcesLabel: z.string().min(1).default('Sources'),
 });
 
 const VideoSchema = z.object({

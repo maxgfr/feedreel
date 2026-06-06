@@ -74,6 +74,9 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
     segments,
     uiLabel,
     dateLocale,
+    topLabel,
+    subscribeLabel,
+    joinLabel,
     subscribeText,
     commentPrompt,
   } = props;
@@ -107,7 +110,7 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
         <Series>
           {isEmpty ? (
             <Series.Sequence durationInFrames={MIN_SEGMENT_FRAMES}>
-              <IntroScene title={title} itemCount={items.length} theme={theme} />
+              <IntroScene title={title} itemCount={items.length} topLabel={topLabel} theme={theme} />
             </Series.Sequence>
           ) : (
             list.map((seg, i) => {
@@ -121,6 +124,7 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
                       title={title}
                       hook={seg.hook}
                       itemCount={items.length}
+                      topLabel={topLabel}
                       theme={theme}
                     />
                   </Series.Sequence>
@@ -132,6 +136,8 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
                   <Series.Sequence key={key} durationInFrames={durationInFrames}>
                     <OutroScene
                       subscribeText={subscribeText}
+                      subscribeLabel={subscribeLabel}
+                      joinLabel={joinLabel}
                       commentPrompt={commentPrompt}
                       uiLabel={uiLabel}
                       emoji={emoji}
@@ -151,6 +157,11 @@ export function FeedReelVideo(props: FeedReelProps): React.ReactElement {
                     headline={seg.headline}
                     body={seg.body}
                     source={seg.source}
+                    home={seg.home}
+                    away={seg.away}
+                    homeScore={seg.homeScore}
+                    awayScore={seg.awayScore}
+                    competition={seg.competition}
                     theme={theme}
                   />
                 </Series.Sequence>
@@ -211,6 +222,9 @@ export const defaultFeedReelProps: FeedReelProps = {
   accentColor: '#22c55e',
   uiLabel: 'FOOTBALL',
   dateLocale: 'en-US',
+  topLabel: 'Top',
+  subscribeLabel: 'Subscribe',
+  joinLabel: 'Join the debate',
   subscribeText: 'Follow for daily football news',
   commentPrompt: 'Late winner or lucky bounce? Drop your verdict 👇',
   fps: 30,

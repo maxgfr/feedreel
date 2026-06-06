@@ -14,6 +14,20 @@ export interface LanguageConfig {
   uiLabel: string;
   /** Intl locale to format the date (e.g. "en-US"). */
   dateLocale: string;
+  /**
+   * Editorial geographic scope (read by the skill, not the renderer):
+   * "int"/"international" = worldwide, all countries; otherwise a country or
+   * region to focus on (e.g. "France", "England", "US"). Defaults to "int".
+   */
+  region?: string;
+  /** Intro kicker label before the item count (e.g. "Top" → "Top 5"). */
+  topLabel: string;
+  /** Outro subscribe-button label (e.g. "Subscribe"). */
+  subscribeLabel: string;
+  /** Outro comment-card badge (e.g. "Join the debate"). */
+  joinLabel: string;
+  /** Caption sources heading in the copy-paste text (e.g. "Sources"). */
+  sourcesLabel: string;
 }
 
 /** Editorial identity of the video. */
@@ -129,6 +143,20 @@ export interface ScriptSegmentInput {
   body?: string;
   url?: string;
   source?: string;
+  // ── Optional scoreboard (item only) ──────────────────────────────────────
+  // When BOTH `home` and `away` are set, the item renders as a sports
+  // scoreboard instead of the plain news layout. Scores are optional: with
+  // them it shows a result (2 – 1), without them a fixture (VS).
+  /** Home team / left side (e.g. "USA"). */
+  home?: string;
+  /** Away team / right side (e.g. "Germany"). */
+  away?: string;
+  /** Home score (omit for an upcoming/unknown fixture). */
+  homeScore?: number;
+  /** Away score (omit for an upcoming/unknown fixture). */
+  awayScore?: number;
+  /** Small label above the score (e.g. "World Cup warm-up", "Friendly · FT"). */
+  competition?: string;
 }
 
 /**
@@ -156,6 +184,12 @@ export interface RenderedSegment {
   body?: string;
   url?: string;
   source?: string;
+  /** Optional scoreboard fields (see ScriptSegmentInput). */
+  home?: string;
+  away?: string;
+  homeScore?: number;
+  awayScore?: number;
+  competition?: string;
   durationSec: number;
   durationFrames: number;
 }
@@ -178,6 +212,12 @@ export interface VideoScript {
   uiLabel: string;
   /** Intl locale to format the date (e.g. "en-US"). */
   dateLocale: string;
+  /** Intro kicker label before the item count (e.g. "Top"). */
+  topLabel: string;
+  /** Outro subscribe-button label (e.g. "Subscribe"). */
+  subscribeLabel: string;
+  /** Outro comment-card badge (e.g. "Join the debate"). */
+  joinLabel: string;
   /** Closing "subscribe" call-to-action. */
   subscribeText: string;
   /** News-tied question shown on the outro to push viewers to comment ('' if none). */
