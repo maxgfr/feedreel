@@ -6,13 +6,13 @@ const validScript: VideoScriptInput = {
   date: '2026-06-06',
   title: 'Title',
   description: 'A short caption.',
-  hashtags: ['#football', '#news'],
+  hashtags: ['#news', '#world'],
   segments: [
     { type: 'intro', hook: 'The big stories today.' },
     {
       type: 'item',
-      headline: 'Late winner',
-      body: 'A stoppage-time goal.',
+      headline: 'Breaking headline',
+      body: 'A surprise overnight decision.',
       url: 'https://bbc.co.uk/a',
       source: 'bbc.co.uk',
     },
@@ -29,7 +29,7 @@ describe('parseScriptJson', () => {
   it('tolerates markdown fences and surrounding text', () => {
     const raw = 'Here you go:\n```json\n' + JSON.stringify(validScript) + '\n```\nDone.';
     const parsed = parseScriptJson(raw);
-    expect(parsed.hashtags).toEqual(['#football', '#news']);
+    expect(parsed.hashtags).toEqual(['#news', '#world']);
   });
 
   it('rejects empty input', () => {
@@ -56,7 +56,7 @@ describe('buildCaption', () => {
     const caption = buildCaption(validScript);
     expect(caption).toContain('Title');
     expect(caption).toContain('A short caption.');
-    expect(caption).toContain('#football #news');
+    expect(caption).toContain('#news #world');
     expect(caption).toContain('Sources:');
     expect(caption).toContain('- bbc.co.uk : https://bbc.co.uk/a');
     expect(caption.endsWith('\n')).toBe(true);

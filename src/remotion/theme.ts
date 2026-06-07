@@ -34,6 +34,46 @@ export interface Theme {
   onAccent: string;
 }
 
+/**
+ * Curated palette of bold, highly-saturated accents that pop on the dark theme.
+ * Used to vary the accent from one video to the next for extra punch.
+ */
+export const PUNCHY_ACCENTS = [
+  '#4ea8ff', // electric blue
+  '#22c55e', // emerald
+  '#ec4899', // hot pink
+  '#8b5cf6', // violet
+  '#f97316', // orange
+  '#06b6d4', // cyan
+  '#ef4444', // red
+  '#f59e0b', // amber
+  '#84cc16', // lime
+  '#f43f5e', // rose
+  '#6366f1', // indigo
+  '#14b8a6', // teal
+] as const;
+
+/** Small, stable string hash (same scheme as the music track picker). */
+function hashSeed(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+/**
+ * Picks a punchy accent color DETERMINISTICALLY from `seed` (e.g. the date):
+ * a different vibrant color each day, yet reproducible for a given date.
+ * The configured `base` color, when given, is kept in the rotation so the
+ * branding still shows up on some days.
+ */
+export function pickAccentColor(seed: string, base?: string): string {
+  const valid = base && /^#[0-9a-fA-F]{3,8}$/.test(base) ? base : undefined;
+  const pool = valid
+    ? [valid, ...PUNCHY_ACCENTS.filter((c) => c.toLowerCase() !== valid.toLowerCase())]
+    : [...PUNCHY_ACCENTS];
+  return pool[hashSeed(seed) % pool.length]!;
+}
+
 /** Normalizes a hex (#rgb or #rrggbb) into 0–255 components. */
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace('#', '').trim();
