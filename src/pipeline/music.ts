@@ -14,6 +14,7 @@ import { paths } from '../../config';
 import { execOrThrow } from '../exec';
 import { ensureDir, framesForDuration } from '../util';
 import { createLogger } from '../log';
+import { pickAccentColor } from '../remotion/theme';
 
 const logger = createLogger('music');
 
@@ -122,7 +123,9 @@ export async function assembleMusicVideo(args: {
     audioFile,
     emoji: cfg.video.emoji,
     label: cfg.video.label,
-    accentColor: cfg.video.accentColor,
+    // Vary the accent per day for extra punch (reproducible from the date),
+    // keeping the configured color in the rotation.
+    accentColor: pickAccentColor(date, cfg.video.accentColor),
     uiLabel: cfg.language.uiLabel,
     dateLocale: cfg.language.dateLocale,
     topLabel: cfg.language.topLabel,
