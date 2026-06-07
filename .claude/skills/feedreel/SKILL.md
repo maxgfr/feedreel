@@ -63,7 +63,7 @@ Pure JSON. No surrounding text, no markdown, no emoji inside the text fields.
   "date": "<date>",
   "title": "Catchy on-screen video title",
   "description": "2–4 sentence social caption that hooks and summarizes.",
-  "hashtags": ["#football", "#…"],
+  "hashtags": ["#news", "#…"],
   "commentPrompt": "Short question tied to a real story of the day, ending with 👇",
   "segments": [
     { "type": "intro", "hook": "1–2 punchy on-screen sentences." },
@@ -76,9 +76,9 @@ Pure JSON. No surrounding text, no markdown, no emoji inside the text fields.
     },
     {
       "type": "item",
-      "home": "France", "away": "Spain",
+      "home": "Lions", "away": "Falcons",
       "homeScore": 2, "awayScore": 1,
-      "competition": "International friendly",
+      "competition": "Cup final",
       "body": "Optional one-line context shown under the scoreboard.",
       "url": "https://…",
       "source": "example.com"
@@ -94,7 +94,7 @@ Rules:
   `away` to render a clean scoreboard instead of a text card. Add `homeScore` +
   `awayScore` (integers) to show a **result** — the winner is highlighted; omit
   them to show an upcoming **fixture** (VS). `competition` is an optional label
-  above the score (e.g. "World Cup warm-up", "Friendly · FT"). When you use a
+  above the score (e.g. "Season opener", "Final · FT"). When you use a
   scoreboard you can drop `headline` (the teams are the title); keep `body` for a
   short context line. NEVER invent a scoreline — only add scores you can back from
   the source. Use a plain `headline`/`body` item for non-match stories (round-ups,
@@ -111,11 +111,17 @@ Rules:
 #### Editorial tone
 
 - `title` and each `headline` must **hook** — punchy, curiosity-driven, the catchy
-  tone of L'Equipe / Eurosport (slightly "clickbait").
+  tone of a viral news recap (slightly "clickbait").
+- **Keep the words simple and punchy — do NOT write it "well".** Write the way
+  people talk and text, not the way articles or essays are written. Use short,
+  common, everyday words and short sentences. Avoid polished, literary or clever
+  phrasing, rare or sophisticated vocabulary, and long/complex clauses — whenever a
+  simpler word exists, use it. Aim for an easy reading level (a 12-year-old should
+  get it instantly). Punch over polish; raw and direct beats elegant.
 - **Stay true**: never invent facts, numbers, names or quotes. The headline must be
   backed by the item.
 - `body` and `description` stay factual and informative — they deliver what the
-  headline promises.
+  headline promises, still in plain, simple words.
 
 ### 3. Render the video + caption
 

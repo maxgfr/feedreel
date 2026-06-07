@@ -10,7 +10,7 @@
 export interface LanguageConfig {
   /** Language name (for documentation only, e.g. "English"). */
   name: string;
-  /** Label prefix displayed in the video header (e.g. "FOOTBALL"). */
+  /** Label prefix displayed in the video header (e.g. "NEWS"). */
   uiLabel: string;
   /** Intl locale to format the date (e.g. "en-US"). */
   dateLocale: string;
@@ -32,7 +32,7 @@ export interface LanguageConfig {
 
 /** Editorial identity of the video. */
 export interface VideoConfig {
-  /** Label displayed in the header (e.g. "Football"). */
+  /** Label displayed in the header (e.g. "Daily News"). */
   label: string;
   /** Header emoji. */
   emoji: string;
@@ -155,7 +155,7 @@ export interface ScriptSegmentInput {
   homeScore?: number;
   /** Away score (omit for an upcoming/unknown fixture). */
   awayScore?: number;
-  /** Small label above the score (e.g. "World Cup warm-up", "Friendly · FT"). */
+  /** Small label above the score (e.g. "Season opener", "Final · FT"). */
   competition?: string;
 }
 
@@ -208,7 +208,7 @@ export interface VideoScript {
   emoji: string;
   label: string;
   accentColor: string;
-  /** Header label prefix (e.g. "FOOTBALL"). */
+  /** Header label prefix (e.g. "NEWS"). */
   uiLabel: string;
   /** Intl locale to format the date (e.g. "en-US"). */
   dateLocale: string;

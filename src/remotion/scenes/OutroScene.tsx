@@ -10,7 +10,7 @@ import type { Theme } from '../theme';
 import { FONTS } from '../fonts';
 
 interface OutroSceneProps {
-  /** Configurable call-to-action (e.g. "Follow for daily football news"). */
+  /** Configurable call-to-action (e.g. "Follow for your daily recap"). */
   subscribeText: string;
   /** Localizable subscribe-button label (e.g. "Subscribe"). */
   subscribeLabel: string;
@@ -21,7 +21,7 @@ interface OutroSceneProps {
    * "Scandal or fair? 👇"). When empty, the comment card is not rendered.
    */
   commentPrompt: string;
-  /** Header label prefix per language (e.g. "FOOTBALL"). */
+  /** Header label prefix per language (e.g. "NEWS"). */
   uiLabel: string;
   emoji: string;
   theme: Theme;

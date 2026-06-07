@@ -24,7 +24,7 @@ interface ItemSceneProps {
   /** Scoreboard: scores (both required to show a result instead of a fixture). */
   homeScore?: number;
   awayScore?: number;
-  /** Scoreboard: small label above the score (e.g. "World Cup warm-up"). */
+  /** Scoreboard: small label above the score (e.g. "Season opener"). */
   competition?: string;
   theme: Theme;
 }
