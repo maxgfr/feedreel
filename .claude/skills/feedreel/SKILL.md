@@ -112,12 +112,17 @@ Rules:
 
 - `title` and each `headline` must **hook** — punchy, curiosity-driven, the catchy
   tone of a viral news recap (slightly "clickbait").
-- **Keep the words simple and punchy — do NOT write it "well".** Write the way
-  people talk and text, not the way articles or essays are written. Use short,
-  common, everyday words and short sentences. Avoid polished, literary or clever
-  phrasing, rare or sophisticated vocabulary, and long/complex clauses — whenever a
-  simpler word exists, use it. Aim for an easy reading level (a 12-year-old should
-  get it instantly). Punch over polish; raw and direct beats elegant.
+- **Write for the whole world — punchy and dead simple.** The audience is
+  international and many viewers read English as a second (or third) language, so
+  every word must be instantly clear to a non-native speaker. Write the way people
+  talk and text, not the way articles or essays are written. Use short, common,
+  everyday words and short sentences. Avoid polished, literary or clever phrasing,
+  rare or sophisticated vocabulary, and long/complex clauses — whenever a simpler
+  word exists, use it. **No slang, idioms, puns, sarcasm or local culture
+  references that don't translate** (e.g. prefer "scored 3 goals" over "bagged a
+  brace/hat-trick" if a plainer phrase is clearer). Aim for an easy reading level
+  (a 12-year-old anywhere should get it instantly). Punch over polish; raw, direct
+  and universal beats elegant.
 - **Stay true**: never invent facts, numbers, names or quotes. The headline must be
   backed by the item.
 - `body` and `description` stay factual and informative — they deliver what the
