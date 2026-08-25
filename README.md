@@ -8,14 +8,15 @@ a ready-to-paste **title + description + hashtags** you post manually.
 Everything runs locally. The pipeline pulls your RSS feeds, deduplicates against
 past videos, and renders a fully code-generated video with
 [Remotion](https://www.remotion.dev/). The editorial work (selecting items,
-writing the script/title/description) is done by the bundled **Claude Code skill**.
+writing the script/title/description) is done by the bundled **agent skill**
+(Claude Code, Codex, and compatible hosts).
 
 |  |  |
 |---|---|
 | Output | one `output/<date>.mp4` (1080×1920 @ 30 fps, H.264/AAC) + `output/<date>.txt` |
 | Rendering | [Remotion](https://www.remotion.dev/) (React/TSX), no external images |
 | Audio | CC0 background music ([SoundSafari/CC0-1.0-Music](https://github.com/SoundSafari/CC0-1.0-Music)), fixed scene durations |
-| Script & caption | written by the **`feedreel`** Claude Code skill |
+| Script & caption | written by the **`feedreel`** agent skill |
 | Publishing | none — you post the MP4 manually using the generated caption |
 
 ## How it works
@@ -37,7 +38,7 @@ The closing "subscribe" scene is appended automatically — you don't write it.
 - **macOS / Apple Silicon.**
 - **Node.js >= 20** and **pnpm**.
 - **ffmpeg / ffprobe** on the `PATH` (music trim + mux).
-- **Claude Code** (to run the bundled skill).
+- **Claude Code, Codex, or another compatible agent host** (to run the bundled skill).
 
 ## Installation
 
@@ -69,7 +70,7 @@ Keep alternate feed sets in their own gitignored files and switch with
 
 ## Usage
 
-Just tell Claude Code **"generate me the video"** (or _"génère moi la vidéo"_). The
+Tell your agent **"generate me the video"** (or _"génère moi la vidéo"_). The
 **`feedreel`** skill drives the whole flow locally: prepare → write the script →
 render → report the MP4 and the copy-paste caption. Nothing leaves your machine
 except fetching the RSS feeds.
@@ -115,7 +116,8 @@ feedreel/
     pipeline/    fetchRss · dedup · script · music · render · orchestrate
     remotion/    FeedReelVideo.tsx · scenes/{Intro,Item,Outro} · components/* · theme · fonts
   scripts/       setup.sh · vendor-*.mjs
-  .claude/skills/feedreel/   the skill that drives generation
+  .claude/skills/feedreel/   canonical skill that drives generation
+  .agents/skills/feedreel/   versioned Codex discovery link to the canonical skill
 ```
 
 ## Licenses

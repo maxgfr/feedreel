@@ -29,8 +29,12 @@ config/feedreel.*.yaml
 !config/feedreel.example.yaml
 # Internal planning specs (development artifacts, not part of the shipped project)
 docs/superpowers/
-# Third-party installed agent skills (not part of this project)
-.agents/
+# Third-party installed agent skills (not part of this project). Keep the
+# versioned Codex discovery link for the bundled feedreel skill.
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/feedreel
 skills-lock.json
 # Local Claude Code settings
 .claude/settings.local.json

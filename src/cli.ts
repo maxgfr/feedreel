@@ -6,7 +6,7 @@
  *   render  [--date]   read the skill-written script → output/<date>.mp4 + .txt
  *
  * The editorial work (script + title + description + hashtags) is done by the
- * "feedreel" Claude Code skill, which writes cache/scripts/<date>.json between
+ * "feedreel" agent skill, which writes cache/scripts/<date>.json between
  * these two commands.
  */
 import { Command } from 'commander';

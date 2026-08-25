@@ -2,7 +2,7 @@
  * Script step: reads and validates the video script written by the skill.
  *
  * The editorial work (selecting items, writing the title/description/hashtags and
- * the segments) is done by the Claude Code skill, which writes a JSON file. This
+ * the segments) is done by the agent skill, which writes a JSON file. This
  * module only READS and VALIDATES it (zod) — no network, no generation.
  */
 import fs from 'node:fs';
