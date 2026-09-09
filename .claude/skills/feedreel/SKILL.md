@@ -1,13 +1,9 @@
 ---
 name: feedreel
-description: >-
-  Generate the daily short video locally from the project's RSS feeds. Use this
-  whenever the user asks to make/generate/produce the video — e.g. "generate me
-  the video", "génère moi la vidéo", "fais la vidéo du jour", "make today's
-  video" (optionally for a given date). It prepares the items, YOU write the
-  script + title + description + hashtags as JSON, then it renders one vertical
-  MP4 (music only) with an auto "subscribe" outro plus a copy-paste caption to
-  post manually. Everything runs locally; no network beyond fetching the feeds.
+description: Generate a daily short video from RSS feeds with a written script, rendered MP4, and publication caption.
+disable-model-invocation: true
+metadata:
+  opencode/autoinvoke: 'false'
 ---
 
 # Skill: feedreel (daily video)
