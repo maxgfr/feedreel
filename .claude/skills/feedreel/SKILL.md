@@ -2,8 +2,6 @@
 name: feedreel
 description: Generate a daily short video from RSS feeds with a written script, rendered MP4, and publication caption.
 disable-model-invocation: true
-metadata:
-  opencode/autoinvoke: 'false'
 ---
 
 # Skill: feedreel (daily video)
