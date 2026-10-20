@@ -9,7 +9,7 @@ Everything runs locally. The pipeline pulls your RSS feeds, deduplicates against
 past videos, and renders a fully code-generated video with
 [Remotion](https://www.remotion.dev/). The editorial work (selecting items,
 writing the script/title/description) is done by the bundled **agent skill**
-(Claude Code, Codex, and compatible hosts).
+(any agent that reads skills: Claude Code, Codex, OpenCode…).
 
 |  |  |
 |---|---|
@@ -38,9 +38,10 @@ The closing "subscribe" scene is appended automatically — you don't write it.
 - **macOS / Apple Silicon.**
 - **Node.js >= 20** and **pnpm**.
 - **ffmpeg / ffprobe** on the `PATH` (music trim + mux).
-- **Claude Code, Codex, or another compatible agent host** (to run the bundled skill:
-  Codex finds it via `.agents/skills`; for another agent run `npx skills add . -a claude-code`
-  (or that agent's name) from the clone).
+- **An agent that reads skills** (Claude Code, Codex, OpenCode…) to run the bundled skill:
+  Codex finds it via `.agents/skills`; for another agent run `npx skills add .` from the
+  clone (pick the agent when prompted, or pass `-a <agent>`, e.g. `-a claude-code` or
+  `-a opencode`).
 
 ## Installation
 
@@ -134,6 +135,6 @@ feedreel/
 
 ## Manual skill invocation
 
-These skills run when explicitly invoked: `feedreel`. Use `$name` in Codex or `/name` in Claude Code and OpenCode (with the plugin namespace when installed as a Claude plugin).
+These skills run when explicitly invoked: `feedreel`. Use `$name` in Codex or `/name` in Claude Code and OpenCode.
 
 The skill bundle disables implicit selection: Claude Code and OpenCode read `disable-model-invocation: true` from `SKILL.md`.
