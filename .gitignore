@@ -38,3 +38,5 @@ docs/superpowers/
 skills-lock.json
 # Local Claude Code settings
 .claude/settings.local.json
+# Local install of the bundled skill (npx skills add .)
+.claude/skills/

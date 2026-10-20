@@ -38,7 +38,9 @@ The closing "subscribe" scene is appended automatically — you don't write it.
 - **macOS / Apple Silicon.**
 - **Node.js >= 20** and **pnpm**.
 - **ffmpeg / ffprobe** on the `PATH` (music trim + mux).
-- **Claude Code, Codex, or another compatible agent host** (to run the bundled skill).
+- **Claude Code, Codex, or another compatible agent host** (to run the bundled skill:
+  Codex finds it via `.agents/skills`; for another agent run `npx skills add . -a claude-code`
+  (or that agent's name) from the clone).
 
 ## Installation
 
@@ -116,7 +118,7 @@ feedreel/
     pipeline/    fetchRss · dedup · script · music · render · orchestrate
     remotion/    FeedReelVideo.tsx · scenes/{Intro,Item,Outro} · components/* · theme · fonts
   scripts/       setup.sh · vendor-*.mjs
-  .claude/skills/feedreel/   canonical skill that drives generation
+  skills/feedreel/           canonical skill that drives generation
   .agents/skills/feedreel/   versioned Codex discovery link to the canonical skill
 ```
 
